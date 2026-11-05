@@ -50,11 +50,11 @@ export async function renderLab(root) {
   moleculeExplorer(sec);
   root.appendChild(h(`<section><h2>Ещё 3D в уроках</h2>
     <div class="lessons">
-      <a class="lesson-card" href="#/lesson/atom"><h3>Конструктор атома</h3><p>Собери атом из протонов, нейтронов и электронов и разрежь его.</p></a>
-      <a class="lesson-card" href="#/lesson/shells"><h3>Орбитали s, p, d</h3><p>Формы электронных облаков и разрез 2s-орбитали.</p></a>
-      <a class="lesson-card" href="#/lesson/crystals"><h3>Кристаллы в разрезе</h3><p>Соль, алмаз, металлы — режем решётку слой за слоем.</p></a>
-      <a class="lesson-card" href="#/lesson/reactions"><h3>Реакции в 3D</h3><p>Как рвутся и возникают связи при горении.</p></a>
-      <a class="lesson-card" href="#/lesson/states"><h3>Лёд, вода и пар</h3><p>Нагревай молекулы и смотри, как меняется состояние.</p></a>
-      <a class="lesson-card" href="#/lesson/periodic"><h3>Таблица-город</h3><p>Свойства элементов как башни разной высоты.</p></a>
+      <a class="lesson-card" href="#lesson-atom"><h3>Конструктор атома</h3><p>Собери атом из протонов, нейтронов и электронов и разрежь его.</p></a>
+      <a class="lesson-card" href="#lesson-shells"><h3>Орбитали s, p, d</h3><p>Формы электронных облаков и разрез 2s-орбитали.</p></a>
+      <a class="lesson-card" href="#lesson-crystals"><h3>Кристаллы в разрезе</h3><p>Соль, алмаз, металлы — режем решётку слой за слоем.</p></a>
+      <a class="lesson-card" href="#lesson-reactions"><h3>Реакции в 3D</h3><p>Как рвутся и возникают связи при горении.</p></a>
+      <a class="lesson-card" href="#lesson-states"><h3>Лёд, вода и пар</h3><p>Нагревай молекулы и смотри, как меняется состояние.</p></a>
+      <a class="lesson-card" href="#lesson-periodic"><h3>Таблица-город</h3><p>Свойства элементов как башни разной высоты.</p></a>
     </div></section>`));
 }

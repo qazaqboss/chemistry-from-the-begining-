@@ -34,7 +34,7 @@ export async function render(el) {
       const m = +mIn.value || 0;
       const n = m / mass;
       out.innerHTML = `<div class="table-wrap"><table class="data"><tr><th>Элемент</th><th>Атомов</th><th>Ar</th><th>Вклад</th><th>Доля по массе</th></tr>
-        ${parts.map((p) => `<tr><td><a href="#/element/${BY_SYMBOL[p.sym].z}">${p.sym}</a></td><td>${p.n}</td><td>${fmt(p.a, 3)}</td><td>${fmt(p.sub, 3)}</td><td>${fmt((p.sub / mass) * 100, 1)}%</td></tr>`).join("")}
+        ${parts.map((p) => `<tr><td><a href="#element-${BY_SYMBOL[p.sym].z}">${p.sym}</a></td><td>${p.n}</td><td>${fmt(p.a, 3)}</td><td>${fmt(p.sub, 3)}</td><td>${fmt((p.sub / mass) * 100, 1)}%</td></tr>`).join("")}
         </table></div>
         <div class="eq">M(${pretty(esc(fIn.value))}) = ${fmt(mass, 3)} г/моль</div>
         <p>${fmt(m, 3)} г — это <b>n = ${fmt(n, 4)} моль</b>, то есть <b>N ≈ ${sci(n * NA)}</b> частиц${n ? `; если это газ — ${fmt(n * 22.414, 3)} л при н. у.` : ""}.</p>`;

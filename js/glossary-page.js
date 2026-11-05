@@ -18,7 +18,7 @@ export function renderGlossary(root, focus) {
       <h3 class="mt0">${esc(g.term)}</h3>
       <p>${esc(g.def)}</p>
       <div class="kid-box" style="margin:8px 0"><b class="kid-title">Просто</b><p>${esc(g.kid)}</p></div>
-      ${l ? `<a class="small" href="#/lesson/${l.id}">Урок «${esc(l.title)}» →</a>` : ""}
+      ${l ? `<a class="small" href="#lesson-${l.id}">Урок «${esc(l.title)}» →</a>` : ""}
     </div>`;
   }).join("");
   root.querySelector("input").oninput = (e) => {

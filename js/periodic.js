@@ -81,7 +81,7 @@ export function renderHome(root) {
   const cells = new Map();
   for (const e of ELEMENTS) {
     const { col, row } = layoutOf(e);
-    const a = h(`<a class="el" href="#/element/${e.z}" style="grid-column:${col};grid-row:${row === 9 ? 9 : row === 10 ? 10 : row}" title="${esc(e.name)}">
+    const a = h(`<a class="el" href="#element-${e.z}" style="grid-column:${col};grid-row:${row === 9 ? 9 : row === 10 ? 10 : row}" title="${esc(e.name)}">
       <span class="n">${e.z}</span><span class="s">${e.sym}</span><span class="nm">${esc(e.name)}</span>
       ${e.state === "liquid" || e.state === "gas" ? `<i class="st ${e.state}"></i>` : ""}
     </a>`);
@@ -163,12 +163,12 @@ export function renderHome(root) {
     <h2>Курс: от атома до реакций</h2>
     <p class="muted">${LESSONS.length} уроков по порядку. В каждом — 3D-модели, опыты и короткий тест. Переключатель <b>«Детям / Взрослым»</b> вверху меняет глубину объяснений.</p>
     <div class="lessons">${LESSONS.slice(0, 6).map((l, i) => lessonCard(l, i, done)).join("")}</div>
-    <a class="btn primary" href="#/course">Все уроки →</a>
+    <a class="btn primary" href="#course">Все уроки →</a>
   </section>`));
 }
 
 export function lessonCard(l, i, done) {
-  return `<a class="lesson-card" href="#/lesson/${l.id}">
+  return `<a class="lesson-card" href="#lesson-${l.id}">
     <svg class="ico" viewBox="0 0 100 100">${l.icon}</svg>
     <span class="num">Урок ${String(i + 1).padStart(2, "0")}</span>
     <h3>${esc(l.title)}</h3>
@@ -187,7 +187,7 @@ export async function renderElement(root, z) {
   const subs = parseConfig(e.config);
   const valence = e.shells[e.shells.length - 1];
 
-  root.appendChild(h(`<div class="crumbs"><a href="#/">Таблица</a> › <span>${esc(CAT_NAMES[e.cat])}</span> › <b>${esc(e.name)}</b></div>`));
+  root.appendChild(h(`<div class="crumbs"><a href="#home">Таблица</a> › <span>${esc(CAT_NAMES[e.cat])}</span> › <b>${esc(e.name)}</b></div>`));
   const page = h(`<div class="el-page"></div>`);
   root.appendChild(page);
 
@@ -247,20 +247,20 @@ export async function renderElement(root, z) {
   // соседи по группе
   const family = ELEMENTS.filter((x) => x.group && x.group === e.group && x.z !== e.z);
   if (family.length) {
-    root.appendChild(h(`<div><h3>Родственники по группе ${e.group}</h3><div class="chips">${family.map((x) => `<a class="chip" href="#/element/${x.z}">${x.sym} · ${esc(x.name)}</a>`).join("")}</div></div>`));
+    root.appendChild(h(`<div><h3>Родственники по группе ${e.group}</h3><div class="chips">${family.map((x) => `<a class="chip" href="#element-${x.z}">${x.sym} · ${esc(x.name)}</a>`).join("")}</div></div>`));
   }
   const prev = ELEMENTS[z - 2], next = ELEMENTS[z];
   root.appendChild(h(`<div class="pager">
-    ${prev ? `<a class="btn" href="#/element/${prev.z}">← ${prev.z}. ${esc(prev.name)}</a>` : "<span></span>"}
-    ${next ? `<a class="btn" href="#/element/${next.z}">${next.z}. ${esc(next.name)} →</a>` : "<span></span>"}
+    ${prev ? `<a class="btn" href="#element-${prev.z}">← ${prev.z}. ${esc(prev.name)}</a>` : "<span></span>"}
+    ${next ? `<a class="btn" href="#element-${next.z}">${next.z}. ${esc(next.name)} →</a>` : "<span></span>"}
   </div>`));
 
   // клавиши ← →
   const onKey = (ev) => {
-    if (!location.hash.startsWith("#/element/")) return document.removeEventListener("keydown", onKey);
+    if (!location.hash.startsWith("#element-")) return document.removeEventListener("keydown", onKey);
     if (ev.target.closest("input,select,textarea")) return;
-    if (ev.key === "ArrowLeft" && prev) location.hash = `#/element/${prev.z}`;
-    if (ev.key === "ArrowRight" && next) location.hash = `#/element/${next.z}`;
+    if (ev.key === "ArrowLeft" && prev) location.hash = `#element-${prev.z}`;
+    if (ev.key === "ArrowRight" && next) location.hash = `#element-${next.z}`;
   };
   document.addEventListener("keydown", onKey);
 

@@ -19,7 +19,8 @@ $$("[data-mode]").forEach((b) => (b.onclick = () => setMode(b.dataset.mode)));
 
 // ---------- тема ----------
 $("#themeBtn").onclick = () => {
-  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const next = cur === "light" ? "dark" : "light";
   document.documentElement.dataset.theme = next;
   try { localStorage.setItem("theme", next); } catch {}
   // перезагрузить фигуры Anatomy в нужной теме
@@ -29,24 +30,19 @@ $("#themeBtn").onclick = () => {
 $("#menuBtn").onclick = () => $("#nav").classList.toggle("open");
 
 // ---------- маршруты ----------
+// Адреса — простые имена после #: #home, #element-26, #lesson-atom, #course, #lab, #glossary-en
 const routes = [
-  [/^\/?$/, (m, v) => renderHome(v), "home"],
-  [/^\/element\/(\d+)$/, (m, v) => renderElement(v, +m[1]), "home"],
-  [/^\/course$/, (m, v) => renderCourse(v), "course"],
-  [/^\/lesson\/([\w-]+)$/, (m, v) => renderLesson(v, m[1]), "course"],
-  [/^\/lab(?:\/([\w-]+))?$/, (m, v) => renderLab(v, m[1]), "lab"],
-  [/^\/glossary(?:\/([\w-]+))?$/, (m, v) => renderGlossary(v, m[1]), "glossary"],
+  [/^(?:home)?$/, (m, v) => renderHome(v), "home"],
+  [/^element-(\d+)$/, (m, v) => renderElement(v, +m[1]), "home"],
+  [/^course$/, (m, v) => renderCourse(v), "course"],
+  [/^lesson-([\w-]+)$/, (m, v) => renderLesson(v, m[1]), "course"],
+  [/^lab$/, (m, v) => renderLab(v), "lab"],
+  [/^glossary(?:-([\w-]+))?$/, (m, v) => renderGlossary(v, m[1]), "glossary"],
 ];
 
-let lastPath = null;
 async function route() {
-  const raw = location.hash.replace(/^#/, "") || "/";
-  const [path, anchor] = raw.split("@");
-  if (path === lastPath && anchor) {
-    document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth" });
-    return;
-  }
-  lastPath = path;
+  // старые ссылки вида #/lesson/atom тоже понимаем
+  const path = decodeURIComponent(location.hash.replace(/^#\/?/, "")).replace(/@.*$/, "").replace(/\//g, "-");
   closePop();
   disposeAllViewers();
   $("#nav").classList.remove("open");
@@ -62,14 +58,13 @@ async function route() {
         await fn(m, view);
       } catch (err) {
         console.error(err);
-        view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Что-то пошло не так</h2><p class="muted">${err.message}</p><a class="btn" href="#/">На главную</a></div>`;
+        view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Что-то пошло не так</h2><p class="muted">${err.message}</p><a class="btn" href="#home">На главную</a></div>`;
       }
-      if (anchor) setTimeout(() => document.getElementById(anchor)?.scrollIntoView(), 60);
-      else window.scrollTo(0, 0);
+      window.scrollTo(0, 0);
       return;
     }
   }
-  view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Страница не найдена</h2><a class="btn" href="#/">На главную</a></div>`;
+  view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Страница не найдена</h2><a class="btn" href="#home">На главную</a></div>`;
 }
 window.addEventListener("hashchange", route);
 route();

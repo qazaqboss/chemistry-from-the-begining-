@@ -39,6 +39,24 @@
   --shadow: 0 10px 30px rgba(30, 50, 110, 0.12);
   color-scheme: light;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f7fc;
+    --bg-2: #eef1f9;
+    --surface: #ffffff;
+    --surface-2: #f2f5fc;
+    --line: rgba(30, 50, 110, 0.1);
+    --line-2: rgba(30, 50, 110, 0.2);
+    --text: #141a2e;
+    --text-2: #475273;
+    --text-3: #6d7896;
+    --accent: #2f6bff;
+    --accent-2: #7a4dff;
+    --kid: #b97800;
+    --shadow: 0 10px 30px rgba(30, 50, 110, 0.12);
+    color-scheme: light;
+  }
+}
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -53,6 +71,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+.safe-top { position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--bg); }
 body::before {
   content: "";
   position: fixed;
@@ -75,12 +94,12 @@ code, .mono { font-family: var(--mono); font-size: 0.92em; }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
-.container { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
-@media (max-width: 600px) { .container { padding: 0 16px; } }
+.container { max-width: var(--max); margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+@media (max-width: 600px) { .container { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
 
 /* ===== Шапка ===== */
 .top {
-  position: sticky; top: 0; z-index: 50;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
   backdrop-filter: blur(14px) saturate(1.3);
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
   background: color-mix(in srgb, var(--bg) 78%, transparent);

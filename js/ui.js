@@ -32,7 +32,7 @@ export function showTerm(id, anchor) {
     <button class="close" aria-label="Закрыть">×</button>
     <h4>${esc(g.term)}</h4>
     ${isKid() ? `<p class="kid-line">${esc(g.kid)}</p><p class="muted small">${esc(g.def)}</p>` : `<p>${esc(g.def)}</p><p class="kid-line small">Просто: ${esc(g.kid)}</p>`}
-    ${g.lesson ? `<a href="#/lesson/${g.lesson}">Подробнее в уроке →</a> · ` : ""}<a href="#/glossary/${id}">В словарь</a>
+    ${g.lesson ? `<a href="#lesson-${g.lesson}">Подробнее в уроке →</a> · ` : ""}<a href="#glossary-${id}">В словарь</a>
   </div>`);
   document.body.appendChild(popEl);
   const r = anchor.getBoundingClientRect();
@@ -111,7 +111,8 @@ export function stage(html = "", { wide = false } = {}) {
 
 // ---------- фигура Anatomy во фрейме ----------
 export function figureFrame(path, title) {
-  const theme = document.documentElement.dataset.theme === "light" ? "-light" : "";
+  const t = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+  const theme = t === "light" ? "-light" : "";
   const f = h(`<iframe class="fig-frame" title="${esc(title)}" loading="lazy" src="${path}/index${theme}.html"></iframe>`);
   f.dataset.base = path;
   return f;
