@@ -39,7 +39,7 @@ export async function render(el) {
     <p data-note style="margin:10px 0 0"></p>
   </div>`);
   sec.appendChild(ctl);
-  const v = createViewer(st, { camera: [0, 2, 12], autoRotate: false, minDistance: 5, maxDistance: 30 });
+  const v = createViewer(st, { camera: [0, 2, 12], fitWidth: 5.2, autoRotate: false, minDistance: 5, maxDistance: 30 });
   const rx = createReaction(v);
   const range = ctl.querySelector("input");
   let playing = false;

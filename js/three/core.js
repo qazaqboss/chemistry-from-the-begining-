@@ -18,6 +18,7 @@ export function createViewer(container, opts = {}) {
     minDistance = 2,
     maxDistance = 60,
     clipping = false,
+    fitWidth = 0, // половина ширины сцены, которая должна влезть по горизонтали
   } = opts;
 
   const wrap = document.createElement("div");
@@ -72,6 +73,14 @@ export function createViewer(container, opts = {}) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    if (fitWidth) {
+      // на узком экране отъезжаем камерой, чтобы сцена не обрезалась по бокам
+      const need = fitWidth / (Math.tan((camera.fov * Math.PI) / 360) * camera.aspect);
+      const dir = camera.position.clone().sub(controls.target);
+      const base = new THREE.Vector3(...camPos).sub(new THREE.Vector3(...target)).length();
+      dir.setLength(Math.min(maxDistance, Math.max(base, need)));
+      camera.position.copy(controls.target).add(dir);
+    }
   }
   const ro = new ResizeObserver(resize);
   ro.observe(wrap);
@@ -123,6 +132,8 @@ export function createViewer(container, opts = {}) {
       wrap.remove();
     },
   };
+  // один кадр сразу после наполнения сцены — чтобы не было пустого окна
+  requestAnimationFrame(() => requestAnimationFrame(() => { if (running) api.renderOnce(); }));
   activeViewers.add(api);
   return api;
 }

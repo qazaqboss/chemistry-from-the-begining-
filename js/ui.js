@@ -20,7 +20,7 @@ export const isKid = () => document.body.classList.contains("kid");
 
 // ---------- термины ----------
 // <button class="term" data-term="en">электроотрицательность</button>
-export const term = (id, text) => `<button type="button" class="term" data-term="${id}">${text ?? GLOSSARY[id]?.term ?? id}</button>`;
+export const term = (id, text) => `<span role="button" tabindex="0" class="term" data-term="${id}">${text ?? GLOSSARY[id]?.term ?? id}</span>`;
 
 let popEl = null;
 export function closePop() { popEl?.remove(); popEl = null; }
@@ -50,7 +50,11 @@ document.addEventListener("click", (e) => {
   if (t) { e.preventDefault(); showTerm(t.dataset.term, t); return; }
   if (popEl && !e.target.closest(".pop")) closePop();
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closePop();
+  const t = e.target.closest?.("span[data-term]");
+  if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); showTerm(t.dataset.term, t); }
+});
 window.addEventListener("scroll", closePop, { passive: true });
 
 // ---------- блок «Детям» ----------
@@ -106,7 +110,7 @@ export function chips(container, items, onPick, initial = 0) {
 
 // ---------- 3D-сцена в карточке ----------
 export function stage(html = "", { wide = false } = {}) {
-  return h(`<div class="stage${wide ? " wide" : ""}">${html}<div class="hint">Крути мышкой или пальцем · колесо — масштаб</div></div>`);
+  return h(`<div class="stage${wide ? " wide" : ""}">${html}<div class="hint"><span class="mouse-only">Крути мышкой · колесо — масштаб</span><span class="touch-only">Веди пальцем вбок — вращение · двумя пальцами — масштаб</span></div></div>`);
 }
 
 // ---------- фигура Anatomy во фрейме ----------

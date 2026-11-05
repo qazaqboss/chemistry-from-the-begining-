@@ -23,7 +23,7 @@ export async function render(el) {
   ionic.appendChild(st1);
   const ctl1 = h(`<div class="row" style="margin:10px 0"><button class="btn primary" type="button" data-go>Передать электрон</button><button class="btn" type="button" data-reset>Сначала</button><button class="btn" type="button" data-cryst>Показать кристалл соли</button></div>`);
   ionic.appendChild(ctl1);
-  const v1 = createViewer(st1, { camera: [0, 3, 17], autoRotate: false, minDistance: 6, maxDistance: 40 });
+  const v1 = createViewer(st1, { camera: [0, 3, 17], fitWidth: 8.6, autoRotate: false, minDistance: 6, maxDistance: 40 });
   const gNa = new THREE.Group(), gCl = new THREE.Group(), gCryst = new THREE.Group();
   gNa.position.x = -4.6; gCl.position.x = 4.6;
   v1.scene.add(gNa, gCl, gCryst);

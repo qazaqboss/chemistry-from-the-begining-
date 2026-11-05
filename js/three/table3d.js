@@ -56,7 +56,7 @@ export function createTable3D(viewer, onHover) {
   const ray = new THREE.Raycaster();
   const ptr = new THREE.Vector2();
   let hovered = null;
-  viewer.renderer.domElement.addEventListener("pointermove", (ev) => {
+  const pick = (ev) => {
     const r = viewer.renderer.domElement.getBoundingClientRect();
     ptr.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ptr, viewer.camera);
@@ -68,7 +68,9 @@ export function createTable3D(viewer, onHover) {
       if (m) m.material.emissive.setHex(0x333333);
       onHover?.(m?.userData.el || null);
     }
-  });
+  };
+  viewer.renderer.domElement.addEventListener("pointermove", pick);
+  viewer.renderer.domElement.addEventListener("pointerdown", pick);
 
   return { setProp };
 }

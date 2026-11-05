@@ -286,8 +286,8 @@ body.kid .kid-box { border-style: solid; }
 .toc a:hover { background: var(--surface); text-decoration: none; }
 .toc a.on { color: var(--text); background: var(--surface-2); }
 .toc .tt { font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin: 0 10px 8px; }
-@media (max-width: 960px) { .lesson-layout { grid-template-columns: 1fr; } .toc { display: none; } }
-.article { max-width: 820px; }
+@media (max-width: 960px) { .lesson-layout { grid-template-columns: minmax(0, 1fr); } .toc { display: none; } }
+.article { max-width: 820px; min-width: 0; }
 .article .lead { font-size: 1.15rem; color: var(--text-2); }
 .article ul, .article ol { padding-left: 1.3em; }
 .article li { margin-bottom: 0.35em; }
@@ -361,3 +361,57 @@ footer .container { display: flex; justify-content: space-between; gap: 20px; fl
 }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .mt0 { margin-top: 0; }
+
+
+/* ===== Телефон и сенсорные экраны ===== */
+.touch-only, .touch-hint { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .touch-only { display: inline; }
+  .touch-hint { display: block; margin: 0 0 8px; }
+  .touch-hint[hidden] { display: none; }
+  .mouse-only { display: none !important; }
+  .el:hover { transform: none; box-shadow: none; }
+  .el:active { transform: scale(0.94); }
+  .pt-preview { display: none; }
+  .lesson-card:hover, .btn:hover { transform: none; }
+}
+.term { display: inline; text-align: inherit; }
+label.row { flex-wrap: nowrap; align-items: flex-start; }
+input[type="checkbox"] { width: 20px; height: 20px; flex: none; margin: 1px 0 0; accent-color: var(--accent); }
+input[type="range"] { height: 30px; }
+.coef button { width: 32px; height: 32px; }
+.crumbs a { padding: 4px 0; }
+
+/* Плитки вместо широкой таблицы */
+.pt.tiles { min-width: 0; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.pt.tiles .el { grid-column: auto !important; grid-row: auto !important; }
+.pt.tiles .gap, .pt.tiles .spacer, .pt.tiles .pt-preview { display: none; }
+.pt.tiles .el .nm { font-size: 0.6rem; }
+
+@media (max-width: 600px) {
+  .stage.wide .viewer { aspect-ratio: 1 / 1; }
+  .stage .viewer { min-height: 320px; }
+  .stage .overlay { font-size: 0.75rem; flex-wrap: wrap; }
+  .stage .hint { left: 12px; text-align: right; }
+  .hero { padding-top: 22px; }
+  .hero-stats { gap: 8px; }
+  .stat { flex: 1; min-width: 0; padding: 10px 12px; }
+  .pt-tools input[type="search"] { width: 100%; }
+  .pt-tools > label.row { flex: 1; }
+  .pt-tools select { flex: 1; min-width: 0; }
+  .pt { --cell: minmax(44px, 1fr); min-width: 830px; }
+  .props { grid-template-columns: 1fr 1fr; }
+  .prop { padding: 9px 10px; }
+  .el-tile { width: 92px; }
+  .el-tile .s { font-size: 2.1rem; }
+  .pad { padding: 16px; }
+  .quiz { padding: 16px; }
+  .pager { flex-direction: column; }
+  .pager .btn { justify-content: center; }
+  .eq { font-size: 1rem; padding: 12px; }
+  .balance { font-size: 1.05rem; gap: 6px; padding: 12px 8px; }
+  .top-tools .seg button { padding: 6px 9px; }
+  .kid-box { padding: 12px 14px 12px 46px; }
+  .kid-box::before { left: 12px; width: 24px; height: 24px; }
+  .builder { gap: 8px; }
+}

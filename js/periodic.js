@@ -67,10 +67,13 @@ export function renderHome(root) {
     <label class="row small muted" style="gap:8px">Раскраска:
       <select aria-label="Раскраска таблицы">${Object.entries(MODES).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join("")}</select>
     </label>
-    <span class="small muted kid-only">Подсказка: наведи на клетку, а потом нажми!</span>
+    <div class="seg pt-view" role="group" aria-label="Вид таблицы"><button type="button" data-v="table" class="on">Таблица</button><button type="button" data-v="tiles">Плитки</button></div>
+    <span class="small muted kid-only mouse-only">Подсказка: наведи на клетку, а потом нажми!</span>
   </div>`);
   root.appendChild(tools);
 
+  const swipe = h(`<p class="small muted touch-hint">Таблица шире экрана — листай её пальцем влево-вправо или включи «Плитки».</p>`);
+  root.appendChild(swipe);
   const scroll = h(`<div class="pt-scroll"></div>`);
   const grid = h(`<div class="pt" role="grid" aria-label="Периодическая таблица"></div>`);
   scroll.appendChild(grid);
@@ -149,6 +152,14 @@ export function renderHome(root) {
       c.classList.toggle("hit", !!q && qOk);
     }
   }
+  const setView = (v) => {
+    grid.classList.toggle("tiles", v === "tiles");
+    swipe.hidden = v === "tiles";
+    $$(".pt-view button", tools).forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+    store.set("ptView", v);
+  };
+  $$(".pt-view button", tools).forEach((b) => (b.onclick = () => setView(b.dataset.v)));
+  setView(store.get("ptView", "table"));
   $("select", tools).onchange = (ev) => { mode = ev.target.value; filter = null; paint(); };
   $("input", tools).oninput = applyFilter;
   $("input", tools).onkeydown = (ev) => {

@@ -63,7 +63,9 @@ export function createMolecule(viewer, data, opts = {}) {
 
 // Подогнать камеру под размер объекта
 export function frame(viewer, radius) {
-  const dist = radius / Math.sin((viewer.camera.fov * Math.PI) / 360) * 0.85;
+  const half = Math.tan((viewer.camera.fov * Math.PI) / 360);
+  // учитываем и высоту, и ширину окна: на телефоне окно узкое
+  const dist = (radius / Math.min(half, half * viewer.camera.aspect)) * 0.95;
   const dir = viewer.camera.position.clone().sub(viewer.controls.target).normalize();
   viewer.camera.position.copy(viewer.controls.target).add(dir.multiplyScalar(dist));
   viewer.controls.update();

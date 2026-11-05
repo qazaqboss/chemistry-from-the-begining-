@@ -41,7 +41,7 @@ export async function render(el) {
   sec.appendChild(chipBox);
   const st = stage(`<div class="overlay"><span data-hover>Наведи на башню</span></div>`, { wide: true });
   sec.appendChild(st);
-  const v = createViewer(st, { camera: [0, 13, 15], autoRotate: false, minDistance: 8, maxDistance: 40 });
+  const v = createViewer(st, { camera: [0, 13, 15], fitWidth: 10.5, autoRotate: false, minDistance: 8, maxDistance: 60 });
   const table = createTable3D(v, (e) => {
     st.querySelector("[data-hover]").innerHTML = e
       ? `<b>${e.z}. ${e.name} (${e.sym})</b> · ${CAT_NAMES[e.cat]} · ${PROPS3D[current].label}: <b>${fmt(PROPS3D[current].get(e), 3) ?? "—"}${current === "mp" ? " K" : ""}</b>`
