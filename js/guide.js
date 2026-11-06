@@ -5,7 +5,7 @@ import { ELEMENTS } from "./data/elements.js";
 import { GLOSSARY } from "./data/glossary.js";
 import { CAT_NAMES, STATE_NAMES } from "./periodic-layout.js";
 import { LESSONS } from "./lessons/meta.js";
-import { h, $, $$, esc, store, isKid } from "./ui.js";
+import { h, $, $$, esc, store, isKid, closePop } from "./ui.js";
 import { fmt } from "./chem.js";
 
 const BY_SYM = Object.fromEntries(ELEMENTS.map((e) => [e.sym, e]));
@@ -138,6 +138,7 @@ function sentences(text) {
 let gen = 0, timer = 0;
 function stopSpeech() {
   gen++;
+  if (typeof clip !== "undefined" && clip && !clip.paused) clip.pause();
   clearTimeout(timer);
   try { synth?.cancel(); } catch {}
 }
@@ -265,13 +266,17 @@ function buildUI() {
 
   // первое знакомство — пузырёк у кнопки
   if (!store.get("guideHello", false)) {
-    const bub = h(`<div class="guide-hello">Привет! Я голосовой гид 👋 Нажми — покажу и расскажу, что здесь что.</div>`);
+    const bub = h(`<div class="guide-hello" role="dialog" aria-label="Голосовой гид">
+      <div class="gh-top"><span class="gc-ava">${AVATAR}</span><b>Привет! Я голосовой гид.</b></div>
+      <p>Хочешь, я сама покажу весь сайт — куда нажимать и что всё означает? Включи звук 🔊</p>
+      <div class="gh-btns"><button type="button" class="btn primary" data-go>▶ Покажи мне всё</button><button type="button" class="btn" data-later>Позже</button></div>
+    </div>`);
     document.body.appendChild(bub);
     const hide = () => { bub.remove(); store.set("guideHello", true); };
-    bub.onclick = () => { hide(); toggleMenu(); };
+    bub.querySelector("[data-go]").onclick = (e) => { e.stopPropagation(); hide(); startAuto(); };
+    bub.querySelector("[data-later]").onclick = (e) => { e.stopPropagation(); hide(); };
     fab.addEventListener("click", hide, { once: true });
-    setTimeout(() => bub.classList.add("out"), 12000);
-    setTimeout(() => bub.isConnected && bub.remove(), 12600);
+
   }
 }
 
@@ -288,7 +293,7 @@ function pageKind() {
 function toggleMenu() {
   if (!menu.hidden) return closeMenu();
   const pk = pageKind();
-  const items = [];
+  const items = [["auto", "▶ Покажи мне всё сам", "Голосовая экскурсия по всему сайту: гид сам переходит по страницам и нажимает кнопки"]];
   if (pk.kind === "lesson") {
     items.push(["lesson", "Прочитать урок вслух", "Покажу и объясню всё по порядку"]);
     items.push(["tour", "Как устроена страница", "Где оглавление, тест и кнопки"]);
@@ -303,7 +308,8 @@ function toggleMenu() {
   $$("[data-k]", menu).forEach((b) => (b.onclick = (e) => {
     e.stopPropagation();
     closeMenu();
-    if (b.dataset.k === "tour") startTour();
+    if (b.dataset.k === "auto") startAuto();
+    else if (b.dataset.k === "tour") startTour();
     else if (b.dataset.k === "lesson") startLesson();
     else startExplain();
   }));
@@ -331,12 +337,14 @@ function tick() {
   const pad = 6;
   if (focusEl && focusEl.isConnected) {
     const r = focusEl.getBoundingClientRect();
-    const top = Math.max(r.top - pad, headerH() + 2), bottom = Math.min(r.bottom + pad, innerHeight - 2);
+    const inHeader = !!focusEl.closest("header.top");
+    const top = Math.max(r.top - pad, inHeader ? 2 : headerH() + 2), bottom = Math.min(r.bottom + pad, innerHeight - 2);
     const left = Math.max(r.left - pad, 2), right = Math.min(r.right + pad, innerWidth - 2);
     const vis = bottom > top + 4 && right > left + 4;
     spot.style.opacity = vis ? 1 : 0;
     Object.assign(spot.style, { top: top + "px", left: left + "px", width: Math.max(0, right - left) + "px", height: Math.max(0, bottom - top) + "px" });
-    spot.classList.toggle("tag-below", top < headerH() + 34);
+    spot.classList.toggle("tag-below", inHeader || top < headerH() + 34);
+    spot.classList.toggle("tag-right", left > innerWidth * 0.5);
     placeCard(r);
   } else {
     spot.style.opacity = 0;
@@ -369,6 +377,7 @@ function reveal(el) {
     }
     p = p.parentElement;
   }
+  if (el.closest("header.top")) return;
   const r = el.getBoundingClientRect();
   const topLimit = headerH() + 12;
   const bottomLimit = innerHeight - (narrow() ? card.offsetHeight + 20 : 20);
@@ -396,12 +405,25 @@ function runSteps(steps, kind, start = 0) {
   card.classList.toggle("explain", false);
   card.querySelector("[data-exitx]").hidden = true;
   card.querySelector("[data-prev]").hidden = card.querySelector("[data-next]").hidden = false;
-  noteIfSilent();
+  card.classList.toggle("auto", kind === "auto");
+  if (kind === "auto" && !settings.muted) card.querySelector("[data-note]").hidden = true; else noteIfSilent();
   goStep(start, 1);
 }
-function goStep(i, dir = 1) {
+async function goStep(i, dir = 1) {
   if (!tour) return;
   const { steps } = tour;
+  runCleanup();
+  // шаг экскурсии-автопилота может сам открыть нужную страницу
+  const target = steps[Math.max(0, Math.min(i, steps.length - 1))];
+  if (i >= 0 && i < steps.length && target.go && location.hash !== target.go) {
+    const my = tour;
+    stopSpeech();
+    setFocus(null);
+    card.querySelector("[data-title]").textContent = "Открываю страницу…";
+    card.querySelector("[data-text]").innerHTML = "";
+    await navigate(target.go);
+    if (tour !== my) return;
+  }
   // пропускаем шаги, чей предмет скрыт на этом экране
   while (i >= 0 && i < steps.length) {
     const el = steps[i].el ? steps[i].el() : null;
@@ -424,6 +446,7 @@ function goStep(i, dir = 1) {
   setFocus(tour.el, st.tag ?? st.title);
   if (tour.el) reveal(tour.el);
   if (tour.playing) play(); else paintPlay();
+  if (st.act) runAct(st, i);
 }
 function markSentence(k) {
   if (!tour) return;
@@ -438,16 +461,85 @@ function play() {
   tour.playing = true;
   paintPlay();
   const myStep = tour.i;
-  speak(tour.sent, tour.si, markSentence, () => {
+  const done = () => {
     if (!tour || tour.i !== myStep) return;
     tour.si = 0;
     if (tour.steps.length > 1 && tour.i < tour.steps.length - 1) timer = setTimeout(() => tour && tour.playing && goStep(tour.i + 1, 1), 650);
     else finish();
+  };
+  const st = tour.steps[tour.i];
+  if (st.audio && !settings.muted) return playClip(st, myStep, done);
+  speak(tour.sent, tour.si, markSentence, done);
+}
+
+// --- записанный голос (ElevenLabs): один mp3 на шаг ---
+const clip = typeof Audio !== "undefined" ? new Audio() : null;
+if (clip) clip.preload = "auto";
+function playClip(st, myStep, done) {
+  stopSpeech();
+  const my = gen;
+  const total = tour.sent.reduce((a, s) => a + s.length, 0) || 1;
+  const src = new URL(st.audio, document.baseURI).href;
+  if (clip.src !== src) clip.src = src;
+  clip.playbackRate = settings.rate;
+  clip.ontimeupdate = () => {
+    if (my !== gen || !tour || tour.i !== myStep || !clip.duration) return;
+    // подсветка фразы — по доле прочитанного текста
+    const pos = (clip.currentTime / clip.duration) * total;
+    let acc = 0, k = 0;
+    for (; k < tour.sent.length - 1; k++) { acc += tour.sent[k].length; if (acc > pos) break; }
+    if (k !== tour.si || !card.querySelector("[data-s].on")) markSentence(k);
+  };
+  clip.onended = () => { if (my === gen) done(); };
+  // запись не загрузилась — читаем встроенным голосом
+  clip.onerror = () => { if (my === gen) speak(tour.sent, tour.si, markSentence, done); };
+  const pr = clip.play();
+  pr?.catch?.((e) => { if (my === gen && e?.name !== "AbortError") speak(tour.sent, tour.si, markSentence, done); });
+}
+function stopClip() { if (clip && !clip.paused) clip.pause(); }
+
+// --- переходы и действия автопилота ---
+let autoNav = false, routeWaiters = [];
+function navigate(hash) {
+  return new Promise((res) => {
+    routeWaiters.push(res);
+    autoNav = true;
+    location.hash = hash;
+    setTimeout(res, 6000); // страховка
+  }).then(() => new Promise((r) => setTimeout(r, 500)));
+}
+let cleanups = [];
+function runCleanup() { const c = cleanups; cleanups = []; c.forEach((f) => { try { f(); } catch {} }); }
+function runAct(st, stepIdx) {
+  const my = tour;
+  const alive = () => tour === my && tour.i === stepIdx;
+  const wait = (ms) => new Promise((r) => {
+    // во время паузы действия тоже ждут
+    let left = ms, last = performance.now();
+    const t = () => {
+      const now = performance.now();
+      if (tour?.playing) left -= now - last;
+      last = now;
+      if (!alive() || left <= 0) return r();
+      setTimeout(t, 100);
+    };
+    setTimeout(t, 100);
   });
+  const ctx = {
+    alive, wait,
+    focus: (el, label, still) => { if (alive() && el) { tour.el = el; setFocus(el, label ?? st.tag ?? st.title); if (!still) reveal(el); } },
+    cleanup: (f) => cleanups.push(f),
+    click: (el) => el && alive() && el.click(),
+    set: (el, v, ev = "input") => { if (!el || !alive()) return; el.value = v; el.dispatchEvent(new Event(ev, { bubbles: true })); },
+    async type(el, text) { for (let k = 1; k <= text.length && alive(); k++) { el.value = text.slice(0, k); el.dispatchEvent(new Event("input", { bubbles: true })); await wait(140); } },
+    async slide(el, from, to, ms) { const n = Math.max(1, Math.round(ms / 50)); for (let k = 0; k <= n && alive(); k++) { el.value = from + ((to - from) * k) / n; el.dispatchEvent(new Event("input", { bubbles: true })); await wait(50); } },
+  };
+  Promise.resolve().then(() => st.act(ctx)).catch((e) => console.warn("guide act", e));
 }
 function finish() {
   if (!tour) return;
   stopSpeech();
+  stopClip();
   tour.playing = false;
   tour.ended = true;
   $$("[data-s]", card).forEach((s) => s.classList.remove("on"));
@@ -457,7 +549,10 @@ function finish() {
 function togglePlay() {
   if (!tour) return;
   if (tour.ended) { tour.ended = false; tour.playing = true; return goStep(tour.steps.length > 1 ? 0 : tour.i, 1); }
-  if (tour.playing) { tour.playing = false; stopSpeech(); paintPlay(); } else play();
+  const st = tour.steps[tour.i];
+  if (tour.playing) { tour.playing = false; stopSpeech(); stopClip(); paintPlay(); }
+  else if (st?.audio && !settings.muted && clip.src && clip.currentTime > 0 && !clip.ended) { tour.playing = true; paintPlay(); clip.play().catch(() => {}); }
+  else play();
 }
 function paintPlay() {
   const b = card.querySelector("[data-play]");
@@ -477,6 +572,8 @@ function noteIfSilent() {
 }
 export function stopAll(keepCard = false) {
   stopSpeech();
+  stopClip();
+  runCleanup();
   tour = null;
   explain = false;
   document.body.classList.remove("guide-explain");
@@ -687,6 +784,94 @@ function addSectionButtons() {
   });
 }
 
+// --- «Покажи мне всё»: экскурсия-автопилот с записанным голосом ---
+const A = (n) => `audio/tour/${String(n).padStart(2, "0")}.mp3`;
+const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+function autoSteps() {
+  return [
+    { go: "#home", audio: A(1), el: q(".hero h1"), title: "Привет!", text: "Привет! Я голосовой гид по химии. Сейчас я сама покажу тебе весь сайт: куда нажимать, что всё означает и как здесь учиться. Просто смотри и слушай. Остановить меня можно кнопкой паузы." },
+    { go: "#home", audio: A(2), el: q(".pt"), title: "Таблица Менделеева", text: "Это главная карта химии — таблица Менделеева. В ней сто восемнадцать элементов. Из них сделано всё вокруг: вода, воздух, ты сам и даже звёзды. Элементы стоят по порядку номеров. Строки называются периодами, а столбцы — группами. Элементы одной группы похожи друг на друга, как родственники." },
+    { go: "#home", audio: A(3), el: q('.el[href="#element-26"]'), title: "Одна клетка", tag: "Железо", text: "Давай рассмотрим одну клетку — железо. Маленькое число в углу, двадцать шесть, — это атомный номер: столько протонов в ядре атома. Крупные латинские буквы — химический символ, его пишут одинаково во всём мире. Внизу — название по-русски. А цвет клетки показывает семейство: железо — переходный металл." },
+    { go: "#home", audio: A(4), el: q(".pt-tools select"), title: "Раскраска", text: "Цвета можно менять. Смотри: я включаю раскраску по электроотрицательности. Это то, насколько сильно атом притягивает к себе электроны. Чем теплее цвет, тем сильнее. Видишь? Самые «жадные» до электронов элементы — справа вверху, у фтора и кислорода.",
+      async act(c) {
+        await c.wait(2200);
+        c.set($(".pt-tools select"), "en", "change");
+        await c.wait(8000);
+        c.focus($('.el[href="#element-9"]'), "Фтор — самый «жадный»");
+        c.cleanup(() => { const s = $(".pt-tools select"); if (s && s.value !== "cat") { s.value = "cat"; s.dispatchEvent(new Event("change", { bubbles: true })); } });
+      } },
+    { go: "#home", audio: A(5), el: () => $(".legend"), title: "Легенда", text: "Я вернула раскраску по семействам. Под таблицей — легенда: каждый цвет означает семейство элементов. Нажимаю на «Галогены» — и в таблице остались только они: фтор, хлор, бром и йод. Это очень активные неметаллы. Если нажать на цвет ещё раз, подсветка снимется.",
+      async act(c) {
+        const s = $(".pt-tools select");
+        if (s.value !== "cat") { c.set(s, "cat", "change"); c.focus($(".legend"), "Легенда"); }
+        await c.wait(7600);
+        c.click($('.legend button[data-k="halogen"]'));
+        c.focus($('.el[href="#element-17"]'), "Галогены: F, Cl, Br, I");
+        c.cleanup(() => { const b = $('.legend button[data-k="halogen"].on'); b?.click(); });
+      } },
+    { go: "#home", audio: A(6), el: q(".pt-tools input[type=search]"), title: "Поиск", text: "А это поиск. Я пишу слово «кислород» — и нужная клетка сразу подсвечивается. Искать можно и по названию, и по символу, и по номеру. А если нажать «Ввод», сразу откроется страница элемента.",
+      async act(c) {
+        const inp = $(".pt-tools input[type=search]");
+        c.cleanup(() => { inp.value = ""; inp.dispatchEvent(new Event("input", { bubbles: true })); });
+        await c.wait(1200);
+        await c.type(inp, "кислород");
+        await c.wait(600);
+        c.focus($('.el[href="#element-8"]'), "Кислород");
+        reveal($('.el[href="#element-8"]'));
+      } },
+    { go: "#element-26", audio: A(7), el: q(".el-tile"), title: "Страница элемента", tag: "Железо", text: "Теперь я открываю страницу железа. Здесь собрано всё об элементе. На карточке — номер и символ, а число внизу — атомная масса: во сколько раз атом железа тяжелее одной двенадцатой части атома углерода." },
+    { go: "#element-26", audio: A(8), el: () => $(".el-page .stage"), title: "Атом в 3D", text: "А это сам атом железа в 3D. В центре — ядро: красные шарики — протоны, серые — нейтроны. Вокруг по кольцам-оболочкам летают голубые электроны. Смотри, я двигаю ползунок разреза — и атом разрезается пополам, как яблоко. Модель можно крутить пальцем или мышкой.",
+      async act(c) {
+        await c.wait(10200);
+        const r = $(".stage-controls input[type=range]");
+        if (!r) return;
+        c.focus(r.closest(".card"), "Разрез");
+        await c.slide(r, 0, 0.9, 2600);
+      } },
+    { go: "#element-26", audio: A(9), el: q(".props"), title: "Свойства", text: "Ниже — свойства элемента, и каждое название можно нажать. Я нажимаю на «Электроотрицательность» — и появляется объяснение, что это значит. Так на сайте устроены все трудные слова. Слова, подчёркнутые пунктиром, тоже нажимаются.",
+      async act(c) {
+        c.cleanup(closePop);
+        await c.wait(3800);
+        const b = $('.prop .k[data-term="en"]');
+        if (!b || !c.alive()) return;
+        // кнопку — к верху экрана, чтобы определение раскрылось над карточкой гида
+        window.scrollTo({ top: b.getBoundingClientRect().top + window.scrollY - headerH() - 16, behavior: "smooth" });
+        await c.wait(900);
+        b.click();
+        await c.wait(150);
+        // без прокрутки: всплывающее определение закрывается, если страницу двигать
+        c.focus($(".pop"), "Определение", true);
+      } },
+    { go: "#course", audio: A(10), el: () => $(".view .lessons"), title: "Курс", text: "Это курс: четырнадцать уроков — от самого начала, что такое химия, до радиоактивности. Проходи их по порядку. В конце каждого урока — небольшой тест. Если ответишь правильно хотя бы на семьдесят процентов, урок засчитается, и на карточке появится галочка." },
+    { go: "#lesson-atom", audio: A(11), el: () => $(".builder")?.closest(".card"), title: "Конструктор атома", text: "Вот урок о строении атома. Здесь есть конструктор: кнопками плюс и минус можно добавлять протоны, нейтроны и электроны. Смотри: я нажимаю «Водород» — это самый простой атом, один протон и один электрон. А теперь «Углерод» — шесть протонов. Сайт сам подсказывает, какой элемент получился.",
+      async act(c) {
+        await c.wait(8600);
+        c.click($('#builder [data-p="1,0,1"]'));
+        c.focus($("#builder .stage"), "Водород");
+        await c.wait(5300);
+        c.click($('#builder [data-p="6,6,6"]'));
+        c.focus($("#builder .stage"), "Углерод");
+      } },
+    { audio: A(12), el: q(".top-tools .seg"), title: "Детям или взрослым", text: "Наверху есть переключатель «Детям — Взрослым». В режиме «Детям» всё объясняется простыми словами и крупным текстом. В режиме «Взрослым» — точные определения и формулы. Выбирай, как тебе удобнее." },
+    { go: "#lab", audio: A(13), el: () => $(".view .stage"), title: "3D-лаборатория", text: "А это 3D-лаборатория. Здесь живут молекулы с настоящей формой. Я выбираю воду: шарики — это атомы, палочки — связи между ними. Красный шарик — кислород, белые — водород. Теперь включаю «заполненную» модель — так атомы выглядят на самом деле, плотно прижавшись друг к другу.",
+      async act(c) {
+        await c.wait(4200);
+        c.click($$(".view .chip").find((x) => x.textContent.trim() === "H₂O"));
+        await c.wait(7400);
+        c.click($('.view [data-s="spacefill"]'));
+      } },
+    { go: "#home", audio: A(14), el: () => fab, soft: true, title: "Я всегда рядом", text: "Вот и всё! Я живу в этой кнопке. Нажми её на любой странице: я расскажу об этой странице, прочитаю урок вслух или включу режим «Что это?» — тогда нажимай на любой предмет, и я объясню, что он значит. Удачи в изучении химии!" },
+  ];
+}
+export function startAuto(start = 0) {
+  // разблокировать звук на iPhone: первый play() должен быть прямо в обработчике нажатия,
+  // а экскурсия может начаться после перехода на главную — проигрываем пустой звук
+  if (clip && location.hash.replace(/^#\/?/, "") !== "home" && location.hash !== "") {
+    try { clip.src = SILENT; clip.play().catch(() => {}); } catch {}
+  }
+  runSteps(autoSteps(), "auto", start);
+}
+
 function startTour() {
   const pk = pageKind();
   const steps = pk.kind === "element" ? elementSteps(pk.z) : pk.kind === "course" ? courseSteps() : pk.kind === "lab" ? labSteps() : pk.kind === "glossary" ? glossarySteps() : pk.kind === "lesson" ? lessonPageSteps() : homeSteps();
@@ -802,10 +987,15 @@ function onExplainClick(ev) {
 // =====================================================================
 export function initGuide() {
   buildUI();
-  window.addEventListener("hashchange", () => { closeMenu(); stopAll(); });
+  window.addEventListener("hashchange", () => {
+    closeMenu();
+    if (autoNav) { autoNav = false; return; }
+    stopAll();
+  });
 }
 // вызывается после отрисовки каждой страницы
 export function guideAfterRoute() {
+  const w = routeWaiters; routeWaiters = []; w.forEach((r) => r());
   if (pageKind().kind === "lesson") addSectionButtons();
 }
 // для проверки: тексты всех шагов текущей страницы (как они будут произнесены)
