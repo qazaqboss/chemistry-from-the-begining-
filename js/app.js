@@ -5,6 +5,7 @@ import { renderHome, renderElement } from "./periodic.js";
 import { renderCourse, renderLesson } from "./lessons/index.js";
 import { renderLab } from "./lab.js";
 import { renderGlossary } from "./glossary-page.js";
+import { initGuide, guideAfterRoute } from "./guide.js";
 
 const app = $("#app");
 
@@ -61,10 +62,12 @@ async function route() {
         view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Что-то пошло не так</h2><p class="muted">${err.message}</p><a class="btn" href="#home">На главную</a></div>`;
       }
       window.scrollTo(0, 0);
+      guideAfterRoute();
       return;
     }
   }
   view.innerHTML = `<div class="card pad" style="margin:30px 0"><h2 class="mt0">Страница не найдена</h2><a class="btn" href="#home">На главную</a></div>`;
 }
+initGuide();
 window.addEventListener("hashchange", route);
 route();

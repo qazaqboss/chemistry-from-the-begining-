@@ -415,3 +415,105 @@ input[type="range"] { height: 30px; }
   .kid-box::before { left: 12px; width: 24px; height: 24px; }
   .builder { gap: 8px; }
 }
+
+/* ===== Голосовой гид ===== */
+.guide-fab {
+  position: fixed; z-index: 120; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px 10px 12px; border-radius: 999px; border: 0; cursor: pointer;
+  font: 800 0.95rem var(--font); color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 8px 28px rgba(60, 90, 255, 0.45);
+}
+.guide-fab svg { width: 26px; height: 26px; color: #fff; }
+.guide-fab:hover { filter: brightness(1.08); }
+.guide-fab:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.guide-hello {
+  position: fixed; z-index: 121; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 60px);
+  max-width: 260px; padding: 12px 14px; border-radius: 14px 14px 4px 14px; background: var(--surface); color: var(--text);
+  border: 1px solid var(--line-2); box-shadow: var(--shadow); font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  animation: pop .25s ease-out; transition: opacity .5s;
+}
+.guide-hello.out { opacity: 0; }
+.guide-menu {
+  position: fixed; z-index: 122; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px);
+  width: min(320px, calc(100vw - 32px)); padding: 6px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line-2);
+  box-shadow: var(--shadow); animation: pop .16s ease-out;
+}
+.guide-menu[hidden], .guide-card[hidden], .guide-spot[hidden], .guide-banner[hidden], .guide-tag[hidden] { display: none; }
+.guide-menu button { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 11px 12px; border: 0; border-radius: 11px; background: none; color: var(--text); font: inherit; cursor: pointer; }
+.guide-menu button:hover:not(:disabled), .guide-menu button:focus-visible { background: var(--surface-2); }
+.guide-menu button b { font-size: 0.95rem; }
+.guide-menu button span { font-size: 0.8rem; color: var(--text-3); }
+.guide-menu button:disabled { opacity: .7; cursor: default; }
+
+.guide-spot {
+  position: fixed; z-index: 110; pointer-events: none; border-radius: 12px;
+  box-shadow: 0 0 0 3px var(--accent), 0 0 0 200vmax rgba(4, 7, 18, 0.5);
+  transition: top .3s ease, left .3s ease, width .3s ease, height .3s ease, opacity .2s;
+}
+.guide-spot::after { content: ""; position: absolute; inset: -3px; border-radius: 14px; border: 3px solid var(--accent); animation: guidePulse 1.6s ease-out infinite; }
+@keyframes guidePulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.06); } }
+.guide-tag {
+  position: absolute; left: -3px; bottom: 100%; margin-bottom: 6px; padding: 3px 10px; border-radius: 8px; white-space: nowrap;
+  background: var(--accent); color: #fff; font-weight: 800; font-size: 0.8rem; max-width: 80vw; overflow: hidden; text-overflow: ellipsis;
+}
+.guide-spot.tag-below .guide-tag { bottom: auto; top: 100%; margin: 6px 0 0; }
+
+.guide-card {
+  position: fixed; z-index: 115; width: 380px; max-width: calc(100vw - 24px); padding: 14px 14px 10px; border-radius: 18px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line-2); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  transition: top .3s ease, left .3s ease;
+}
+.guide-card.docked {
+  left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); width: auto; max-width: none;
+  bottom: max(10px, env(safe-area-inset-bottom)); top: auto; transition: none;
+}
+.gc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.gc-ava { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+.gc-ava svg { width: 24px; height: 24px; }
+.gc-tt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.gc-tt b { font-size: 1rem; line-height: 1.2; }
+.gc-tt span { font-size: 0.75rem; color: var(--text-3); font-family: var(--mono); }
+.gc-x { border: 0; background: none; color: var(--text-3); font-size: 1.5rem; line-height: 1; cursor: pointer; width: 36px; height: 36px; border-radius: 10px; }
+.gc-x:hover { background: var(--surface-2); color: var(--text); }
+.gc-text { font-size: 0.95rem; line-height: 1.5; max-height: 34vh; overflow-y: auto; color: var(--text-2); overscroll-behavior: contain; }
+.guide-card.docked .gc-text { max-height: 26vh; }
+.gc-text span { transition: color .2s, background .2s; border-radius: 4px; }
+.gc-text span.on { color: var(--text); background: color-mix(in srgb, var(--accent) 18%, transparent); }
+body.kid .gc-text { font-size: 1.05rem; }
+.gc-note { margin: 8px 0 0; color: var(--warn); }
+.gc-ctl { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.gc-ctl button { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); cursor: pointer; }
+.gc-ctl button[hidden] { display: none; }
+.gc-ctl button:disabled { opacity: .35; cursor: default; }
+.gc-ctl button svg { width: 20px; height: 20px; }
+.gc-ctl .gc-play { width: 52px; border: 0; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.gc-ctl .gc-sp { flex: 1; }
+.gc-ctl .gc-exit { width: auto; padding: 0 12px; font: 700 0.82rem var(--font); }
+.gc-set { display: grid; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--text-2); }
+.gc-set[hidden], .gc-set label[hidden] { display: none; }
+.gc-set label { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.gc-set select { flex: 1; min-width: 0; }
+.gc-set .seg button { padding: 5px 9px; }
+
+.guide-banner {
+  position: fixed; z-index: 116; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top) + 74px);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; width: max-content; max-width: calc(100vw - 24px);
+  padding: 10px 12px 10px 16px; border-radius: 14px; background: var(--accent); color: #fff; box-shadow: var(--shadow); font-size: 0.9rem;
+}
+.guide-banner span { opacity: .92; }
+.guide-banner .btn { background: rgba(255, 255, 255, 0.2); color: #fff; border-color: transparent; }
+body.guide-explain main, body.guide-explain header.top, body.guide-explain main a, body.guide-explain main button { cursor: help; }
+/* на телефоне карточка гида внизу — круглую кнопку прячем, чтобы не закрывала управление */
+@media (max-width: 719px) { body.guide-open .guide-fab, body.guide-open .guide-hello { display: none; } }
+
+.say-sec { margin-left: 10px; vertical-align: middle; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--surface); color: var(--accent); cursor: pointer; }
+.say-sec svg { width: 18px; height: 18px; }
+.say-sec:hover { background: var(--surface-2); }
+.pop .say { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 8px; padding: 5px 10px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); font: 700 0.82rem var(--font); cursor: pointer; }
+footer { padding-bottom: 80px; }
+@media (max-width: 600px) {
+  .guide-fab span { display: none; }
+  .guide-fab { padding: 12px; }
+  .guide-banner { top: auto; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 66px); }
+}
+@media (prefers-reduced-motion: reduce) { .guide-spot::after { animation: none; } .guide-spot, .guide-card { transition: none; } }

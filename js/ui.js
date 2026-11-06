@@ -31,6 +31,7 @@ export function showTerm(id, anchor) {
   popEl = h(`<div class="pop" role="dialog" aria-label="${esc(g.term)}">
     <button class="close" aria-label="Закрыть">×</button>
     <h4>${esc(g.term)}</h4>
+    <button type="button" class="say" data-say-term>🔊 Послушать</button>
     ${isKid() ? `<p class="kid-line">${esc(g.kid)}</p><p class="muted small">${esc(g.def)}</p>` : `<p>${esc(g.def)}</p><p class="kid-line small">Просто: ${esc(g.kid)}</p>`}
     ${g.lesson ? `<a href="#lesson-${g.lesson}">Подробнее в уроке →</a> · ` : ""}<a href="#glossary-${id}">В словарь</a>
   </div>`);
@@ -43,6 +44,10 @@ export function showTerm(id, anchor) {
   popEl.style.left = left + "px";
   popEl.style.top = top + "px";
   popEl.querySelector(".close").onclick = closePop;
+  popEl.querySelector("[data-say-term]").onclick = () => {
+    const text = `${g.term}. ${isKid() ? g.kid : g.def + " Проще говоря: " + g.kid}`;
+    window.dispatchEvent(new CustomEvent("guide:say", { detail: text }));
+  };
   popEl.querySelectorAll("a").forEach((a) => a.addEventListener("click", closePop));
 }
 document.addEventListener("click", (e) => {
