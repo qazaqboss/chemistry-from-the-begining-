@@ -118,6 +118,7 @@ export function toSpeech(t) {
     .replace(/(\d)[\s\u00a0\u202f](?=\d{3}(?!\d))/g, "$1")
     .replace(/(?<![А-Яа-яЁё])[А-ЯЁ]{3,}(?![А-Яа-яЁё])/g, (w) => w.toLowerCase())
     .replace(/([,.:;!?])\s*,/g, "$1")
+    .replace(/[,\s]+\.(?=\s|$)/g, ".")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
