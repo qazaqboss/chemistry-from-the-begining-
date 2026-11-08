@@ -35,7 +35,9 @@ export async function renderLesson(root, id) {
   const idx = LESSONS.findIndex((l) => l.id === id);
   if (idx < 0) throw new Error("Нет такого урока");
   const meta = LESSONS[idx];
-  const mod = await import(`./${id}.js`);
+  let mod;
+  try { mod = await import(`./${id}.js`); }
+  catch { mod = { render: (el) => el.appendChild(h(`<p class="lead">Этот урок ещё готовится. Загляни позже!</p>`)) }; }
 
   const layout = h(`<div class="lesson-layout">
     <aside class="toc"><div class="tt">${meta.year} год · урок ${idx + 1} из ${LESSONS.length}</div><nav></nav></aside>
