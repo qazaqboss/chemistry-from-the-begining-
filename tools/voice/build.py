@@ -6,7 +6,7 @@ D = os.path.dirname(os.path.abspath(__file__))
 OUT = sys.argv[1]  # .../audio/voice
 SR = 24000
 GAP = int(0.25 * SR)
-items = json.load(open(os.path.join(D, "..", "corpus.json")))
+items = json.load(open(os.path.join(D, "corpus.json")))
 def group(src):
     s = src[0]
     s = s[2:] if s.startswith("x:") else s

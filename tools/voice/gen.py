@@ -50,7 +50,7 @@ def prio(x):
     return (best, z)
 
 def main():
-    items = json.load(open(os.path.join(D, "..", "corpus.json")))
+    items = json.load(open(os.path.join(D, "corpus.json")))
     items.sort(key=prio)
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else 9
     from omnivoice import OmniVoice
