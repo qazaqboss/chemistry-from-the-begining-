@@ -1,6 +1,7 @@
 // Голосовой гид: экскурсия по странице с подсветкой, чтение уроков вслух
 // и режим «Что это?» — нажми на любой предмет, и гид объяснит, что он означает.
-// Голос — встроенный синтезатор речи браузера (Web Speech API), без внешних сервисов.
+// Голос — записанные фразы (OmniVoice, audio/voice/), а чего нет в записи —
+// встроенный синтезатор речи браузера (Web Speech API).
 import { ELEMENTS } from "./data/elements.js";
 import { GLOSSARY } from "./data/glossary.js";
 import { CAT_NAMES, STATE_NAMES } from "./periodic-layout.js";
@@ -34,6 +35,8 @@ if (synth) {
 const settings = {
   get rate() { return store.get("guideRate", 1); },
   get muted() { return store.get("guideMuted", false); },
+  // записанный голос гида (по умолчанию) или голос браузера
+  get rec() { return store.get("guideRec", true); },
   get voice() { return ruVoices.find((v) => v.voiceURI === store.get("guideVoice", "")) || ruVoices[0] || null; },
 };
 // можно ли говорить вслух: синтезатор есть, и есть русский голос
@@ -135,10 +138,80 @@ function sentences(text) {
   return out;
 }
 
+// --- записанный голос: фразы озвучены заранее и собраны в файлы по страницам ---
+// audio/voice/index.json: { files: [...], map: { хеш фразы: [файл, начало мс, длина мс] } }
+const VOICE_DIR = "audio/voice/";
+let voiceIndex = null, voiceIndexP = null, actx = null, recSrc = null;
+const bufs = new Map(); // файл → Promise<AudioBuffer>
+function fnv(str) {
+  let h = 0x811c9dc5;
+  for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, "0");
+}
+function loadVoiceIndex() {
+  if (!voiceIndexP) voiceIndexP = fetch(VOICE_DIR + "index.json").then((r) => (r.ok ? r.json() : null)).then((j) => (voiceIndex = j)).catch(() => null);
+  return voiceIndexP;
+}
+function audioCtx() {
+  if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (C) actx = new C(); }
+  return actx;
+}
+// телефоны дают включить звук только по нажатию — будим аудио при первом касании
+function unlockAudio() {
+  const c = audioCtx();
+  if (!c) return;
+  if (c.state !== "running") c.resume().catch(() => {});
+  try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch {}
+}
+function loadBuf(fi) {
+  if (!bufs.has(fi)) {
+    const c = audioCtx();
+    const p = fetch(VOICE_DIR + voiceIndex.files[fi]).then((r) => { if (!r.ok) throw 0; return r.arrayBuffer(); })
+      .then((ab) => new Promise((res, rej) => c.decodeAudioData(ab, res, rej)));
+    p.catch(() => bufs.delete(fi));
+    bufs.set(fi, p);
+    // держим в памяти не больше 6 файлов
+    if (bufs.size > 6) bufs.delete(bufs.keys().next().value);
+  }
+  return bufs.get(fi);
+}
+const recFor = (s) => (voiceIndex && settings.rec && audioCtx() ? voiceIndex.map[fnv(toSpeech(s))] : null);
+// заранее подгрузить файлы для списка фраз
+function prefetchRec(list) {
+  if (!voiceIndex) return;
+  const need = new Set(list.map(recFor).filter(Boolean).map((r) => r[0]));
+  [...need].slice(0, 3).forEach(loadBuf);
+}
+function stopRec() { if (recSrc) { try { recSrc.onended = null; recSrc.stop(); } catch {} recSrc = null; } }
+// сыграть записанную фразу; false — записи нет, говорит браузер
+function playRec(s, my, onEnd, onFail) {
+  const r = recFor(s);
+  if (!r) return false;
+  const c = audioCtx();
+  if (c.state !== "running") c.resume().catch(() => {});
+  let fell = false;
+  const fail = () => { if (!fell && my === gen) { fell = true; onFail(); } };
+  const slow = setTimeout(fail, 5000); // файл грузится слишком долго
+  loadBuf(r[0]).then((buf) => {
+    clearTimeout(slow);
+    if (my !== gen || fell) return;
+    stopRec();
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = settings.rate;
+    src.connect(c.destination);
+    src.onended = () => { if (recSrc === src) recSrc = null; if (my === gen) onEnd(); };
+    src.start(0, r[1] / 1000, r[2] / 1000);
+    recSrc = src;
+  }, () => { clearTimeout(slow); fail(); });
+  return true;
+}
+
 let gen = 0, timer = 0;
 function stopSpeech() {
   gen++;
   if (typeof clip !== "undefined" && clip && !clip.paused) clip.pause();
+  stopRec();
   clearTimeout(timer);
   try { synth?.cancel(); } catch {}
 }
@@ -155,6 +228,9 @@ function speak(list, from, onIdx, onDone) {
     let fired = false;
     const go = () => { if (fired) return; fired = true; clearTimeout(timer); if (my !== gen) return; i++; next(); };
     const rate = settings.rate;
+    if (!settings.muted && playRec(s, my, go, () => { fired = false; speakSynth(); })) return;
+    speakSynth();
+    function speakSynth() {
     if (!canSpeak()) {
       // без звука — субтитры сменяются по времени чтения
       timer = setTimeout(go, Math.max(1800, (s.length * 62) / rate));
@@ -175,7 +251,9 @@ function speak(list, from, onIdx, onDone) {
     try { synth.speak(u); } catch { return go(); }
     // страховка: некоторые браузеры не присылают onend
     timer = setTimeout(go, 6000 + (s.length * 140) / rate);
+    }
   };
+  prefetchRec(list.slice(from));
   // Chrome: если синтезатор «завис» на паузе — разбудить
   try { synth?.resume(); } catch {}
   next();
@@ -247,12 +325,15 @@ function buildUI() {
   mute.onchange = () => { store.set("guideMuted", mute.checked); replayCurrent(); };
   const sel = card.querySelector("[data-voice]");
   renderVoiceSelect = () => {
-    sel.innerHTML = ruVoices.map((v) => `<option value="${esc(v.voiceURI)}">${esc(v.name)}</option>`).join("");
-    if (settings.voice) sel.value = settings.voice.voiceURI;
-    card.querySelector("[data-voice-row]").hidden = ruVoices.length < 2;
+    sel.innerHTML = `<option value="rec">Голос гида (записанный)</option>` + ruVoices.map((v) => `<option value="${esc(v.voiceURI)}">Браузер: ${esc(v.name)}</option>`).join("");
+    sel.value = settings.rec || !settings.voice ? "rec" : settings.voice.voiceURI;
+    card.querySelector("[data-voice-row]").hidden = !ruVoices.length;
   };
   renderVoiceSelect();
-  sel.onchange = () => { store.set("guideVoice", sel.value); replayCurrent(); };
+  sel.onchange = () => { store.set("guideRec", sel.value === "rec"); if (sel.value !== "rec") store.set("guideVoice", sel.value); replayCurrent(); };
+  loadVoiceIndex();
+  addEventListener("pointerdown", unlockAudio, { capture: true });
+  addEventListener("keydown", unlockAudio, { capture: true });
 
   document.addEventListener("click", (e) => { if (!menu.hidden && !e.target.closest(".guide-menu")) closeMenu(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && (tour || explain)) stopAll(); });
@@ -564,7 +645,9 @@ function replayCurrent() { if (tour && tour.playing && !tour.ended) play(); }
 function noteIfSilent() {
   const n = card.querySelector("[data-note]");
   let msg = "";
-  if (!synth) msg = "Этот браузер не умеет говорить — читай субтитры, они сменяются сами.";
+  const rec = voiceIndex && settings.rec && tour?.sent?.some((x) => recFor(x));
+  if (rec && !settings.muted) msg = "";
+  else if (!synth) msg = "Этот браузер не умеет говорить — читай субтитры, они сменяются сами.";
   else if (settings.muted) msg = "Звук выключен в настройках (шестерёнка) — показываю субтитры.";
   else if (allVoicesCount > 0 && !ruVoices.length) msg = "На устройстве нет русского голоса — показываю субтитры. Голос можно добавить в настройках системы (Специальные возможности → Речь).";
   n.textContent = msg;
@@ -1004,3 +1087,22 @@ export function guideScript(kind = "lesson") {
   const steps = kind === "lesson" ? lessonSteps() : pk.kind === "element" ? elementSteps(pk.z) : pk.kind === "course" ? courseSteps() : pk.kind === "lab" ? labSteps() : pk.kind === "glossary" ? glossarySteps() : pk.kind === "lesson" ? lessonPageSteps() : homeSteps();
   return steps.map((s) => ({ title: s.title, found: !s.el || visible(s.el()), say: toSpeech(s.text) }));
 }
+
+// для сборки озвучки: все фразы, которые гид может сказать на этой странице
+export function guideCorpus() {
+  const pk = pageKind();
+  const out = [];
+  const add = (steps) => steps.forEach((s) => sentences(s.text).forEach((x) => out.push(toSpeech(x))));
+  add(pk.kind === "element" ? elementSteps(pk.z) : pk.kind === "course" ? courseSteps() : pk.kind === "lab" ? labSteps() : pk.kind === "glossary" ? glossarySteps() : pk.kind === "lesson" ? lessonPageSteps() : homeSteps());
+  if (pk.kind === "lesson") add(lessonSteps());
+  return out;
+}
+export function explainCorpus(el) {
+  for (const [sel, fn] of EXPLAIN) {
+    if (!el.matches(sel)) continue;
+    const r = fn(el, { target: el });
+    if (r && r.text) return sentences(r.text).map(toSpeech);
+  }
+  return [];
+}
+export const speechSentences = (text) => sentences(text).map(toSpeech);
