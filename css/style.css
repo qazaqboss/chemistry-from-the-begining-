@@ -522,3 +522,14 @@ footer { padding-bottom: 80px; }
   .guide-banner { top: auto; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 66px); }
 }
 @media (prefers-reduced-motion: reduce) { .guide-spot::after { animation: none; } .guide-spot, .guide-card { transition: none; } }
+
+/* ---------- курс по годам ---------- */
+.year-nav { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 4px; }
+.year-nav a { min-width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); font-weight: 700; color: var(--text); text-decoration: none; }
+.year-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.year { margin-top: 34px; scroll-margin-top: 80px; }
+.year-head { display: flex; gap: 14px; align-items: center; }
+.year-head h2 { margin: 0; }
+.year-head p { margin: 2px 0 0; }
+.year-n { flex: none; width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 1.4rem; font-weight: 800; color: #fff; background: linear-gradient(135deg, #6ea8ff, #9b7bff); }
+.year .lessons { margin-top: 14px; }

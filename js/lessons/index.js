@@ -1,20 +1,34 @@
 // Страница курса и общий «каркас» урока.
-import { LESSONS } from "./meta.js";
+import { LESSONS, YEARS } from "./meta.js";
 import { h, $$, esc, store, quiz } from "../ui.js";
 import { lessonCard } from "../periodic.js";
 
-export { LESSONS };
+export { LESSONS, YEARS };
 
 export function renderCourse(root) {
   const done = store.get("done", {});
   const n = Object.keys(done).length;
   root.appendChild(h(`<section style="padding-top:30px">
     <span class="tag">Курс</span>
-    <h1 style="margin-top:12px">Химия от начала до конца</h1>
-    <p class="lead muted" style="max-width:720px">Проходи уроки по порядку: каждый следующий опирается на предыдущий. В конце урока — тест; результат сохранится в этом браузере.</p>
+    <h1 style="margin-top:12px">Химия от начала до конца: 12 лет</h1>
+    <p class="lead muted" style="max-width:760px">${LESSONS.length} уроков, разложенных на 12 лет: от «из чего всё состоит» для малышей до квантовой химии и матриц уровня университета. Проходи по порядку: каждый урок опирается на предыдущие. В конце урока — тест; результат сохранится в этом браузере.</p>
     <div class="row" style="max-width:520px;margin-top:10px"><div class="progress" style="flex:1"><i style="width:${(n / LESSONS.length) * 100}%"></i></div><b>${n} / ${LESSONS.length}</b></div>
-    <div class="lessons">${LESSONS.map((l, i) => lessonCard(l, i, done)).join("")}</div>
+    <nav class="year-nav">${YEARS.map((y) => `<a href="#course" data-year="${y.n}">${y.n}</a>`).join("")}</nav>
+    ${YEARS.map((y) => {
+      const ls = LESSONS.map((l, i) => [l, i]).filter(([l]) => l.year === y.n);
+      const k = ls.filter(([l]) => done[l.id] != null).length;
+      return `<div class="year" id="year-${y.n}">
+        <div class="year-head"><span class="year-n">${y.n}</span><div><h2>${y.n} год · ${esc(y.title)}</h2><p class="muted">${esc(y.desc)} · пройдено ${k} из ${ls.length}</p></div></div>
+        <div class="lessons">${ls.map(([l, i]) => lessonCard(l, i, done)).join("")}</div>
+      </div>`;
+    }).join("")}
   </section>`));
+  root.querySelector(".year-nav").addEventListener("click", (e) => {
+    const a = e.target.closest("[data-year]");
+    if (!a) return;
+    e.preventDefault();
+    document.getElementById("year-" + a.dataset.year)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
 export async function renderLesson(root, id) {
@@ -24,9 +38,9 @@ export async function renderLesson(root, id) {
   const mod = await import(`./${id}.js`);
 
   const layout = h(`<div class="lesson-layout">
-    <aside class="toc"><div class="tt">Урок ${idx + 1} из ${LESSONS.length}</div><nav></nav></aside>
+    <aside class="toc"><div class="tt">${meta.year} год · урок ${idx + 1} из ${LESSONS.length}</div><nav></nav></aside>
     <article class="article">
-      <div class="crumbs"><a href="#course">Курс</a> › <span>Урок ${idx + 1}</span></div>
+      <div class="crumbs"><a href="#course">Курс</a> › <span>${meta.year} год · урок ${idx + 1}</span></div>
       <h1>${esc(meta.title)}</h1>
       <div class="body"></div>
     </article>
