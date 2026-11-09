@@ -42,3 +42,12 @@ export const GLOSSARY = {
   lanthanide: { term: "Лантаноиды", def: "15 элементов от лантана (57) до лютеция (71); заполняется 4f-подуровень. Их называют редкоземельными, используют в магнитах, лазерах, экранах.", kid: "Секретные металлы внутри телефонов и мощных магнитов.", lesson: "periodic" },
   actinide: { term: "Актиноиды", def: "15 элементов от актиния (89) до лоуренсия (103); заполняется 5f-подуровень. Все радиоактивны; уран и плутоний — ядерное топливо.", kid: "Радиоактивная семья, в которой живут уран и плутоний.", lesson: "nuclear" },
 };
+
+// термины новых уроков курса на 12 лет
+import { TERMS as Y12 } from "./glossary-y12.js";
+import { TERMS as Y35 } from "./glossary-y35.js";
+import { TERMS as Y67 } from "./glossary-y67.js";
+import { TERMS as Y89 } from "./glossary-y89.js";
+import { TERMS as Y1011 } from "./glossary-y1011.js";
+import { TERMS as Y12U } from "./glossary-y12u.js";
+for (const t of [Y12, Y35, Y67, Y89, Y1011, Y12U]) for (const [k, v] of Object.entries(t)) if (!GLOSSARY[k] || t === Y1011) GLOSSARY[k] = v;
