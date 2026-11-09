@@ -325,7 +325,7 @@ export function svgPlot({ w = 640, h = 260, pad = [46, 16, 18, 34], xr, yr, xt =
   const Yf = (y) => h - B - ((y - yr[0]) / (yr[1] - yr[0])) * (h - T - B);
   const path = (pts) => pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Yf(p[1]).toFixed(1)).join("");
   return `<svg viewBox="0 0 ${w} ${h}" class="yk-plot" role="img">
-    ${yt.map((y) => `<line class="g" x1="${L}" x2="${w - R}" y1="${Yf(y)}" y2="${Yf(y)}"/><text class="t" x="${L - 6}" y="${Yf(y) + 4}" text-anchor="end">${String(y).replace(".", ",")}</text>`).join("")}
+    ${yt.map((y) => `<line class="g" x1="${L}" x2="${w - R}" y1="${Yf(y)}" y2="${Yf(y)}"/><text class="t" x="${L - 6}" y="${Yf(y) + 4}" text-anchor="end">${String(y).replace(".", ",").replace("-", "−")}</text>`).join("")}
     ${xt.map((x) => `<text class="t" x="${X(x)}" y="${h - B + 16}" text-anchor="middle">${String(x).replace(".", ",")}</text>`).join("")}
     <line class="ax" x1="${L}" x2="${w - R}" y1="${h - B}" y2="${h - B}"/><line class="ax" x1="${L}" x2="${L}" y1="${T}" y2="${h - B}"/>
     ${extra && typeof extra === "function" ? extra(X, Yf) : ""}

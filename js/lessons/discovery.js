@@ -109,7 +109,7 @@ export async function render(el) {
     <p data-pick class="small muted" style="margin:6px 0 0"></p>
   </div>`);
   s1.appendChild(ctl);
-  const v = createViewer(st, { camera: [0, 2.5, 18.5], autoRotateSpeed: 0.5, fitWidth: 4.8, maxDistance: 40 });
+  const v = createViewer(st, { camera: [0, 2.2, 16.5], autoRotateSpeed: 0.5, fitWidth: 4.8, maxDistance: 40 });
   const pickInfo = (e) => {
     ctl.querySelector("[data-pick]").innerHTML = `<b>${e.z}. ${esc(e.name)} (${e.sym})</b> — ${e.year ? `открыт в ${e.year} г.` : "известен с древности"}; ${esc(e.discoverer || "")}. <a href="#element-${e.z}">Карточка элемента →</a>`;
   };

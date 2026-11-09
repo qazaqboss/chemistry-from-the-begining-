@@ -26,6 +26,7 @@ export function createCandle(viewer) {
   const flame = [];
   for (let i = 0; i < 150; i++) {
     const s = glowSprite(0xffc04d, 0.4, 0);
+    s.material.blending = THREE.NormalBlending;
     g.add(s);
     flame.push({ s, life: R(), sp: 0.8 + R() * 0.5, ang: R() * Math.PI * 2, edge: R() });
   }
@@ -48,9 +49,9 @@ export function createCandle(viewer) {
   // подписи зон
   const zones = new THREE.Group();
   const zl = (t, y, x) => { const s = textSprite(t, { size: 0.24 }); s.position.set(x, y, 0); zones.add(s); };
-  zl("внешняя зона ≈ 1400 °C", 2.35, 2.1);
-  zl("светящаяся зона: раскалённая сажа ≈ 1200 °C", 1.3, 2.9);
-  zl("тёмная зона: пары воска ≈ 600 °C", 0.55, 2.4);
+  zl("≈1400 °C: внешняя зона", 2.35, 1.6);
+  zl("≈1200 °C: светится сажа", 1.35, 1.6);
+  zl("≈600 °C: пары воска", 0.55, 1.5);
   zones.visible = false;
   g.add(zones);
 
@@ -87,7 +88,7 @@ export function createCandle(viewer) {
       if (u < 0.18) tmpC.copy(cBlue).lerp(cYel, u / 0.18 * (1 - p.edge * 0.6));
       else tmpC.copy(cYel).lerp(cOr, (u - 0.18) / 0.82);
       p.s.material.color.copy(tmpC);
-      p.s.material.opacity = I * 0.55 * Math.sin(Math.PI * u) * (p.edge > 0.7 && u < 0.3 ? 0.6 : 1);
+      p.s.material.opacity = I * 0.42 * Math.sin(Math.PI * u) * (p.edge > 0.7 && u < 0.3 ? 0.6 : 1);
       p.s.scale.setScalar((0.28 + 0.3 * (1 - u)) * (0.6 + 0.4 * I));
     }
     for (const s of smoke) {

@@ -104,7 +104,7 @@ export async function render(el) {
   const show = (m) => {
     mol.set(m.data);
     lp = lonePairMeshes(m.data); mol.group.add(lp);
-    frame(v, mol.radius() + 0.3);
+    frame(v, mol.radius());
     st.querySelector("[data-a]").innerHTML = `<b class="formula">${pretty(m.f)}</b>`;
     st.querySelector("[data-b]").innerHTML = `<b>${m.name}</b><br>${m.cls}`;
     note.querySelector("[data-n]").innerHTML = `${m.note} <span class="muted small">M = ${fmt(molarMass(m.f).mass, 1)} г/моль</span>`;
@@ -115,7 +115,7 @@ export async function render(el) {
   s5.appendChild(h(`<p style="margin-top:18px">А вот соль — <b>хлорид натрия</b> NaCl. Молекул здесь нет: кристалл собран из ионов Na⁺ (фиолетовые) и Cl⁻ (зелёные). Формула лишь показывает их соотношение 1 : 1, а название — из каких ионов он собран.</p>`));
   const st2 = stage(`<div class="overlay"><span style="font-size:1rem"><b>NaCl — хлорид натрия</b></span><span>Na⁺ : Cl⁻ = 1 : 1</span></div>`);
   s5.appendChild(st2);
-  const v2 = createViewer(st2, { camera: [6, 4.5, 7.5], autoRotateSpeed: 0.5 });
+  const v2 = createViewer(st2, { camera: [7.5, 6, 10], autoRotateSpeed: 0.5, fitWidth: 4.6, minDistance: 5, maxDistance: 40 });
   createLattice(v2, "nacl", 2);
 
   // ---------- тренажёр ----------
@@ -123,7 +123,7 @@ export async function render(el) {
     <div class="card pad nm-tr">
       <div class="row" style="justify-content:space-between"><div class="seg"><button type="button" class="on" data-mode="0">Формула → название</button><button type="button" data-mode="1">Название → формула</button></div><span class="small muted">Верно: <b data-score>0</b> из <b data-total>0</b></span></div>
       <div data-ask class="nm-ask"></div>
-      <div data-opts class="nm-opts"></div>
+      <div class="q nm-q"><div data-opts class="nm-opts opts"></div></div>
       <p data-msg style="margin:10px 0 0;min-height:1.4em"></p>
       <button class="btn small" type="button" data-next>Следующий вопрос →</button>
     </div>
@@ -132,7 +132,7 @@ export async function render(el) {
       .nm-tr .nm-ask small{display:block;font-size:.8rem;font-weight:600;color:var(--text-3);margin-bottom:4px}
       .nm-tr .nm-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
       @media (max-width:560px){.nm-tr .nm-opts{grid-template-columns:1fr}}
-      .nm-tr .nm-opts .opt{text-align:left}
+      .nm-tr .nm-q{margin:0;padding:0;border:0;background:none}
     </style>
   </section>`);
   el.appendChild(s6);

@@ -68,7 +68,7 @@ export async function render(el) {
       <div class="two"><label class="ctl">Нижний уровень n₁: <b data-a></b><input type="range" min="1" max="5" value="2" data-n1></label>
       <label class="ctl">Верхний уровень n₂: <b data-b></b><input type="range" min="3" max="12" value="3" data-n2></label></div>
       <svg class="plot" viewBox="0 0 700 150" style="margin-top:12px" data-all></svg>
-      <svg class="plot" viewBox="0 0 700 90" style="margin-top:10px" data-vis></svg>
+      <svg class="plot" viewBox="0 0 700 94" style="margin-top:10px" data-vis></svg>
       <p data-out style="margin:10px 0 0"></p>
     </div>
   </section>`);
@@ -99,7 +99,7 @@ export async function render(el) {
     for (let b = 3; b <= 9; b++) {
       const l = lam(2, b);
       v += `<rect x="${V(l) - (b === n2 && n1 === 2 ? 2.5 : 1.5)}" y="10" width="${b === n2 && n1 === 2 ? 5 : 3}" height="50" fill="${wl2rgb(l)}"/>`;
-      if (b <= 6) v += `<text x="${V(l)}" y="76" text-anchor="middle" font-size="11" fill="var(--text-2)">H${"αβγδ"[b - 3]} ${num(l, 1)}</text>`;
+      if (b <= 6) v += `<text x="${V(l)}" y="${b % 2 ? 74 : 87}" text-anchor="middle" font-size="11" fill="var(--text-2)">H${"αβγδ"[b - 3]} ${num(l, 1)}</text>`;
     }
     hy.querySelector("[data-vis]").innerHTML = v;
     const l = lam(n1, n2), E = 1239.84 / l;

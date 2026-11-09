@@ -78,7 +78,7 @@ export function createModeScene(viewer) {
     viewer.clear(group);
     meshes = mol.atoms.map((a) => { const s = new THREE.Mesh(sphereGeo(Math.max(0.24, COV_R[a.el] * 0.45), 32), glossy(CPK[a.el])); group.add(s); return s; });
     bonds = mol.bonds.map(([i, j]) => { const b = bondMesh([0, 0, 0], [0, 1, 0], 0.09, bondMat); group.add(b); return { b, i, j }; });
-    arrows = mol.atoms.map(() => { const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 1, 0xffc23d, 0.18, 0.12); group.add(a); return a; });
+    arrows = mol.atoms.map(() => { const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(), 1, 0xffb000, 0.26, 0.18); group.add(a); return a; });
   }
   function place() {
     const s = Math.sin(phase) * amp;
@@ -97,7 +97,7 @@ export function createModeScene(viewer) {
       if (!a.visible) return;
       a.position.copy(toT(mol.atoms[i].p));
       a.setDirection(v.clone().normalize());
-      a.setLength(0.25 + L * 0.9, 0.18, 0.12);
+      a.setLength(0.45 + L * 0.9, 0.26, 0.18);
     });
   }
   viewer.onFrame((dt) => {
