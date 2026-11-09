@@ -77,7 +77,7 @@ export async function render(el) {
     <label class="row small" style="margin-top:10px"><input type="checkbox" data-hot> Нагреть шприц с 20 °C до 100 °C</label>
     <p data-d class="small" style="margin:10px 0 0"></p></div>`);
   s4.appendChild(c4);
-  const v4 = createViewer(st4, { camera: [0, 2.5, 13], minDistance: 6, maxDistance: 30, autoRotate: false, fitWidth: 6.2 });
+  const v4 = createViewer(st4, { camera: [0, 2.5, 13], minDistance: 6, maxDistance: 30, autoRotate: false, fitWidth: 6.8 });
   const syr = createSyringe(v4);
   const range = c4.querySelector("input[type=range]"), hot = c4.querySelector("[data-hot]");
   let base = 0;

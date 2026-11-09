@@ -7,16 +7,16 @@ const RING = 40;
 
 export const GEO = {
   azimuth: 60,
-  plate: { x: -104, y: -58, w: 210, d: 106, r: 8 },
-  beakers: { zn: [-56, -2], cu: [56, -2] },
+  plate: { x: -104, y: -50, w: 210, d: 106, r: 8 },
+  beakers: { zn: [-56, -16], cu: [56, -16] },
   beaker: { r: 22, rIn: 21.2, h: 52, lip: 53.6, level: 36 },
   lid: { z: 53.6, h: 3, half: 25.5, d: 6 },
   plate_: { half: 8, thick: 1.6, z0: 7, z1: 74 },
   terminal: { z0: 70, z1: 76 },
-  bridge: { r: 3.2, y: 7, inset: 13, low: 20, high: 74 },
-  meter: { plan: { x: -24, y: -52, w: 40, d: 24, r: 3 }, z0: 2, z1: 38, cx: -4, cz: 13, r: 15, span: 52 },
-  posts: { minus: -15, plus: 7, y: -38 },
-  sw: { plan: { x: 20, y: -50, w: 36, d: 14, r: 1.5 }, z: 3, hinge: [27, -43, 9.5], length: 22, open: 0.95, wide: 1.6, thick: 0.9 },
+  bridge: { r: 3.2, y: -23, inset: 13, low: 20, high: 72 },
+  meter: { plan: { x: -20, y: 12, w: 40, d: 24, r: 3 }, z0: 2, z1: 38, cx: 0, cz: 13, r: 15, span: 52 },
+  posts: { minus: -11, plus: 11, y: 17 },
+  sw: { plan: { x: 30, y: 28, w: 36, d: 14, r: 1.5 }, z: 3, hinge: [37, 35, 10], length: 22, open: 0.95, wide: 2.3, thick: 1.2 },
 };
 
 const r1 = (value) => Math.round(value * 10) / 10;
@@ -77,6 +77,6 @@ export function bladeOf(lift, P) {
   };
   return {
     blade: box(-1.2, s.length, -s.wide, s.wide, -s.thick / 2, s.thick / 2),
-    handle: box(s.length - 1, s.length + 1.6, s.wide, s.wide + 8, -1.4, 1.4),
+    handle: box(s.length - 1.4, s.length + 2.4, s.wide, s.wide + 9, -1.9, 1.9),
   };
 }

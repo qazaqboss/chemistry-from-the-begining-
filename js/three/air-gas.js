@@ -69,13 +69,13 @@ export function createSyringe(viewer) {
   const piston = new THREE.Group();
   const head = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.35, 48), glossy(0x30343c, { roughness: 0.6 }));
   head.rotation.z = Math.PI / 2;
-  const rod = new THREE.Mesh(new THREE.BoxGeometry(LMAX, 0.3, 0.3), glossy(0xdde3ee));
-  rod.position.x = LMAX / 2 + 0.2;
+  const rod = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, 0.3), glossy(0xdde3ee));
+  rod.position.x = 1.7;
   const thumb = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 0.18, 40), glossy(0xdde3ee));
-  thumb.rotation.z = Math.PI / 2; thumb.position.x = LMAX + 0.25;
+  thumb.rotation.z = Math.PI / 2; thumb.position.x = 3.25;
   piston.add(head, rod, thumb);
   g.add(piston);
-  g.position.x = 0.45;
+  g.position.x = -1.1;
 
   const ps = [];
   for (let i = 0; i < 46; i++) {

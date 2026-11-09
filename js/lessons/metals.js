@@ -169,7 +169,7 @@ function buildMetal(v, st, ctl) {
   const ionMat = kit.mat(0x9aa3b5, { metalness: 0.6, roughness: 0.3 });
   const ions = [];
   for (let x = 0; x < NX; x++) for (let y = 0; y < NY; y++) for (let z = 0; z < NZ; z++) {
-    const m = new THREE.Mesh(kit.geo(0.55), ionMat);
+    const m = new THREE.Mesh(kit.geo(0.47), ionMat);
     const p = new THREE.Vector3((x - (NX - 1) / 2) * a, (y - (NY - 1) / 2) * a, (z - (NZ - 1) / 2) * a);
     m.position.copy(p);
     root.add(m);
@@ -179,7 +179,7 @@ function buildMetal(v, st, ctl) {
   const half = new THREE.Vector3((NX * a) / 2, (NY * a) / 2, (NZ * a) / 2);
   const R = rng(9);
   const els = Array.from({ length: 70 }, () => {
-    const m = new THREE.Mesh(kit.geo(0.12), eMat);
+    const m = new THREE.Mesh(kit.geo(0.14), eMat);
     root.add(m);
     return { m, p: new THREE.Vector3((R() - 0.5) * 2 * half.x, (R() - 0.5) * 2 * half.y, (R() - 0.5) * 2 * half.z), v: new THREE.Vector3(R() - 0.5, R() - 0.5, R() - 0.5).normalize().multiplyScalar(3) };
   });
@@ -226,7 +226,7 @@ function buildCell(v, st, ctl) {
   const bk = beaker(4.6, 7, 0.8);
   root.add(bk);
   const liquid = bk.userData.liquid;
-  liquid.material.opacity = 0.22;
+  liquid.material.opacity = 0.3;
   const range = ctl.querySelector("input");
   let t = 0, playing = false, time = 0, plate = null, atoms = [], ions = [], bubbles = [], res = null, tint0 = new THREE.Color(), tint1 = new THREE.Color();
   const dynamic = new THREE.Group();
@@ -236,7 +236,7 @@ function buildCell(v, st, ctl) {
     res = r; t = 0; playing = false; range.value = 0;
     const R = rng(4);
     const mc = METALS[M].color;
-    plate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 6.4, 0.3), new THREE.MeshStandardMaterial({ color: mc, metalness: 0.75, roughness: 0.35 }));
+    plate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 6.4, 0.3), new THREE.MeshStandardMaterial({ color: mc, metalness: 0.25, roughness: 0.4 }));
     dynamic.add(plate);
     // поверхностные атомы пластинки (растворяются)
     atoms = [];
@@ -245,10 +245,10 @@ function buildCell(v, st, ctl) {
     for (let i = 0; i < 16; i++) {
       const side = i % 2 ? 1 : -1;
       const p = [(((i >> 1) % 2) - 0.5) * 0.7, -1.6 - Math.floor(i / 4) * 0.55 + 0.9, side * 0.24];
-      const m = new THREE.Mesh(kit.geo(0.24), kit.mat(mc, { metalness: 0.6, roughness: 0.3 }));
+      const m = new THREE.Mesh(kit.geo(0.24), kit.mat(mc, { metalness: 0.2, roughness: 0.35 }));
       dynamic.add(m);
       const go = i < dissolveCount;
-      atoms.push({ m, p, go, end: [(R() - 0.5) * 6.5, (R() - 0.5) * 3 - 0.8, side * (1.4 + R() * 1.6)], ph: R() * 6 });
+      atoms.push({ m, atomMat: m.material, ionMat: M === "Cu" ? kit.mat(0x2f8fff) : M === "Fe" ? kit.mat(0x9be08a) : m.material, go, p, end: [(R() - 0.5) * 6.5, (R() - 0.5) * 3 - 0.8, side * (1.4 + R() * 1.6)], ph: R() * 6 });
     }
     // ионы раствора
     const ionColor = S.m === "H" ? 0xf2f4f8 : S.m === "Cu" ? 0x2f8fff : COLORS[S.m] ?? 0xcccccc;
@@ -260,7 +260,7 @@ function buildCell(v, st, ctl) {
       do p = [(R() - 0.5) * 7, (R() - 0.5) * 4 - 0.6, (R() - 0.5) * 6]; while (Math.abs(p[0]) < 1.4 && Math.abs(p[2]) < 1);
       const side = p[2] >= 0 ? 1 : -1;
       const tgt = [(R() - 0.5) * 1.3, -2.4 + R() * 4.2, side * (0.42 + R() * 0.12)];
-      ions.push({ m, p, tgt, ph: R() * 6 });
+      ions.push({ m, p, tgt, ph: R() * 6, ionMat: m.material, atomMat: S.m === "H" ? m.material : kit.mat(METALS[S.m].color, { metalness: 0.2, roughness: 0.35 }) });
     }
     // пузырьки водорода
     bubbles = [];
@@ -286,6 +286,7 @@ function buildCell(v, st, ctl) {
     for (const a of atoms) {
       let p = [a.p[0] + y[0], a.p[1] + y[1], a.p[2]];
       if (a.go && res.go) p = lerpV(p, a.end, pR);
+      a.m.material = a.go && res.go && pR > 0.3 ? a.ionMat : a.atomMat; // атом металла стал ионом
       const j = a.go && pR > 0 ? 0.12 : 0;
       a.m.position.set(p[0] + Math.sin(time * 2 + a.ph) * j, p[1] + Math.cos(time * 1.7 + a.ph) * j, p[2]);
     }
@@ -294,6 +295,7 @@ function buildCell(v, st, ctl) {
       let p = [i.p[0] + jig[0], i.p[1] + jig[1], i.p[2] + jig[2]];
       if (res.go) p = lerpV(p, i.tgt, pR);
       i.m.position.set(...p);
+      i.m.material = res.go && pR > 0.85 ? i.atomMat : i.ionMat; // осевший ион стал атомом металла
       i.m.visible = !(res.gas && t > 0.92);
     }
     bubbles.forEach((b, k) => {

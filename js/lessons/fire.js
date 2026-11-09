@@ -57,7 +57,7 @@ export async function render(el) {
     side.querySelector("[data-c]").textContent = c.lit ? "🔥 ОГОНЬ" : "нет огня";
     side.querySelector("[data-c]").setAttribute("fill", c.lit ? "var(--warn, #f5a524)" : "currentColor");
     st.querySelector("[data-t]").innerHTML = `<b>${c.lit ? "Свеча горит" : "Пламя погасло"}</b>`;
-    st.querySelector("[data-o]").textContent = c.state.jar ? `кислорода в банке: ${Math.round(c.state.o2 * 21)}%` : "";
+    st.querySelector("[data-o]").textContent = c.state.jar ? `кислорода в банке: ${Math.round(14 + c.state.o2 * 7)}%` : "";
   };
   side.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => {
     const a = b.dataset.a; last = a;

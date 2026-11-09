@@ -4,8 +4,8 @@ import { createEquationScene } from "../three/genetic-models.js";
 
 // Узлы схемы (координаты в viewBox 720×330)
 const NODES = {
-  Ca: [60, 60, "Ca", "металл"], CaO: [220, 60, "CaO", "основный оксид"], CaOH2: [390, 60, "Ca(OH)₂", "основание"], CaCO3: [600, 60, "CaCO₃", "соль"],
-  S: [60, 270, "S", "неметалл"], SO2: [200, 270, "SO₂", "кислотный оксид"], SO3: [340, 270, "SO₃", "кислотный оксид"], H2SO4: [490, 270, "H₂SO₄", "кислота"], Na2SO4: [650, 270, "Na₂SO₄", "соль"],
+  Ca: [55, 70, "Ca", "металл"], CaO: [230, 70, "CaO", "основный оксид"], CaOH2: [405, 70, "Ca(OH)₂", "основание"], CaCO3: [640, 70, "CaCO₃", "соль"],
+  S: [55, 270, "S", "неметалл"], SO2: [205, 270, "SO₂", "кислотный оксид"], SO3: [355, 270, "SO₃", "кислотный оксид"], H2SO4: [505, 270, "H₂SO₄", "кислота"], Na2SO4: [660, 270, "Na₂SO₄", "соль"],
   CaSO4: [500, 165, "CaSO₄", "соль обоих рядов"],
 };
 const EDGES = [
@@ -13,7 +13,7 @@ const EDGES = [
   { a: "CaO", b: "CaOH2", eq: "CaO + H₂O → Ca(OH)₂ + Q", type: "соединение, экзотермическая", note: "«Гашение извести»: смесь сильно разогревается. Основный оксид + вода → щёлочь (только для активных металлов).", L: [[1, "CaO"], [1, "H2O"]], R: [[1, "Ca(OH)2"]] },
   { a: "CaOH2", b: "CaCO3", eq: "Ca(OH)₂ + CO₂ → CaCO₃↓ + H₂O", type: "обмен с кислотным оксидом", note: "Качественная реакция на CO₂: известковая вода мутнеет. Так твердеет известковая штукатурка.", L: [[1, "Ca(OH)2"], [1, "CO2"]], R: [[1, "CaCO3"], [1, "H2O"]] },
   { a: "CaCO3", b: "CaO", eq: "CaCO₃ →(t ≈ 900 °C) CaO + CO₂↑", type: "разложение, эндотермическая", note: "Обжиг известняка в печах — так получают негашёную известь. Круг замкнулся: из соли снова оксид.", L: [[1, "CaCO3"]], R: [[1, "CaO"], [1, "CO2"]], curve: true },
-  { a: "S", b: "SO2", eq: "S + O₂ → SO₂", type: "соединение, горение", note: "Сера горит синим пламенем, образуя едкий сернистый газ. Неметалл + кислород → кислотный оксид. (На модели — кольцо S₈; в уравнении для простоты пишут S.)", L: [[1, "S"], [1, "O2"]], R: [[1, "SO2"]] },
+  { a: "S", b: "SO2", eq: "S + O₂ → SO₂", type: "соединение, горение", note: "Сера горит синим пламенем, образуя едкий сернистый газ. Неметалл + кислород → кислотный оксид. (На самом деле твёрдая сера состоит из молекул-«корон» S₈, но в уравнении и на модели пишут просто S.)", L: [[1, "S"], [1, "O2"]], R: [[1, "SO2"]] },
   { a: "SO2", b: "SO3", eq: "2SO₂ + O₂ ⇄ 2SO₃ (кат. V₂O₅, t)", type: "соединение, обратимая, каталитическая", note: "Ключевая стадия производства серной кислоты: без катализатора оксид ванадия(V) реакция почти не идёт.", L: [[2, "SO2"], [1, "O2"]], R: [[2, "SO3"]] },
   { a: "SO3", b: "H2SO4", eq: "SO₃ + H₂O → H₂SO₄", type: "соединение", note: "Кислотный оксид + вода → кислота. На заводе SO₃ поглощают концентрированной серной кислотой, чтобы не образовался кислотный туман.", L: [[1, "SO3"], [1, "H2O"]], R: [[1, "H2SO4"]] },
   { a: "H2SO4", b: "Na2SO4", eq: "H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O", type: "обмен, нейтрализация", note: "Кислота + щёлочь → соль + вода. Сульфат натрия — «глауберова соль».", L: [[1, "H2SO4"], [2, "NaOH"]], R: [[1, "Na2SO4"], [2, "H2O"]] },
@@ -44,13 +44,13 @@ export async function render(el) {
   // ---------- Интерактивная схема + 3D ----------
   const sec = h(`<section id="scheme"><h2>Интерактивная схема превращений</h2>
     <p>Нажимай на стрелки (или на номера): под схемой появится уравнение реакции, а в 3D — модели всех участников с коэффициентами. Посчитай атомы слева и справа — их поровну.</p>
-    <div class="card pad" style="padding:10px">
-      <svg viewBox="0 0 720 330" style="width:100%;height:auto;display:block" data-svg role="group" aria-label="Схема генетических рядов кальция и серы"></svg>
+    <div class="card pad table-wrap" style="padding:10px">
+      <svg viewBox="0 0 720 330" style="width:100%;min-width:560px;height:auto;display:block" data-svg role="group" aria-label="Схема генетических рядов кальция и серы"></svg>
     </div>
   </section>`);
   el.appendChild(sec);
   const svg = sec.querySelector("[data-svg]");
-  const W = 64, H = 22; // полуширина/полувысота узла
+  const W = 50, H = 22; // полуширина/полувысота узла
   const ends = (e) => {
     const [x1, y1] = NODES[e.a], [x2, y2] = NODES[e.b];
     const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
@@ -69,7 +69,7 @@ export async function render(el) {
   };
   // при заголовке «CaO + SO₃» стрелка идёт от SO₃; CaO как партнёр указан в уравнении
   svg.innerHTML = `<defs><marker id="gen-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="currentColor"/></marker></defs>
-    <text x="8" y="16" font-size="12" fill="currentColor" opacity="0.6">ряд кальция</text><text x="8" y="322" font-size="12" fill="currentColor" opacity="0.6">ряд серы</text>
+    <text x="8" y="26" font-size="12" fill="currentColor" opacity="0.6">ряд кальция</text><text x="8" y="322" font-size="12" fill="currentColor" opacity="0.6">ряд серы</text>
     ${EDGES.map((e, i) => { const [mx, my] = mid(e); return `<g class="gen-edge" data-e="${i}" tabindex="0" role="button" aria-label="${esc(e.eq)}" style="cursor:pointer">
       <path d="${edgePath(e)}" fill="none" stroke="transparent" stroke-width="18"/>
       <path d="${edgePath(e)}" fill="none" stroke="currentColor" stroke-width="2.5" marker-end="url(#gen-ar)" data-line opacity="0.55"/>
@@ -108,7 +108,7 @@ export async function render(el) {
     g.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickEdge(+g.dataset.e); } });
   });
   pickEdge(0);
-  sec.appendChild(h(`<p class="small muted">Цвета атомов: <span style="color:#3dff6e">●</span> Ca, <span style="color:#ffd23a">●</span> S, <span style="color:#ff3b3b">●</span> O, <span style="color:#9aa2b4">●</span> C, <span style="color:#ab5cf2">●</span> Na, ○ H. Металл кальций показан фрагментом его гранецентрированной решётки, ионные соединения — формульной единицей (ионы без «палочек»).</p>`));
+  sec.appendChild(h(`<p class="small muted">Цвета атомов: <span style="color:#3dff6e">●</span> Ca, <span style="color:#ffd23a">●</span> S, <span style="color:#ff3b3b">●</span> O, <span style="color:#9aa2b4">●</span> C, <span style="color:#ab5cf2">●</span> Na, ○ H. Каждая частица — одна формульная единица: металл и сера — отдельными атомами, ионные соединения — ионами без «палочек» связей.</p>`));
 
   // ---------- Тренажёр ----------
   const tr = h(`<section id="chains"><h2>Тренажёр: найди пропущенное вещество</h2>

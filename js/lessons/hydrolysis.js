@@ -67,9 +67,9 @@ export async function render(el) {
       .hyd .hyd-pair>div{padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
       .hyd .hyd-pair b{display:block;font-family:var(--mono)}
       .hyd .st{color:var(--good);font-weight:700}.hyd .wk{color:var(--bad);font-weight:700}
-      .hyd-scale{position:relative;margin:26px 0 8px}
+      .hyd-scale{position:relative;margin:40px 0 8px}
       .hyd-bar{height:14px;border-radius:8px;background:linear-gradient(90deg,#e0302a,#f08a24 20%,#f2d22e 35%,#5cc85a 50%,#2aa3c8 65%,#3d5bd8 80%,#6a3fb8)}
-      .hyd-mark{position:absolute;top:-22px;transform:translateX(-50%);transition:left .5s;text-align:center;font-weight:800;font-size:.85rem}
+      .hyd-mark{position:absolute;top:-38px;white-space:nowrap;transform:translateX(-50%);transition:left .5s;text-align:center;font-weight:800;font-size:.85rem}
       .hyd-mark::after{content:"";display:block;width:3px;height:30px;margin:2px auto 0;background:var(--text);border-radius:2px}
       .hyd-ticks{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-3)}
       @media (max-width:520px){.hyd .hyd-pair{grid-template-columns:1fr}}
