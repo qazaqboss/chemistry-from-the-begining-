@@ -40,7 +40,7 @@ export async function render(el) {
     <div class="table-wrap" style="margin-top:10px"><table class="data"><tr><th>Сода осталось</th><th>Кислоты осталось</th><th>CO₂ получено</th></tr><tr><td data-s1></td><td data-s2></td><td data-s3></td></tr></table></div>
     <p data-d class="small" style="margin:8px 0 0"></p></div>`);
   s2.appendChild(c2);
-  const v = createViewer(st, { camera: [0, 1.5, 13], target: [0, 0.6, 0], minDistance: 6, maxDistance: 30, autoRotateSpeed: 0.4, fitWidth: 3.6 });
+  const v = createViewer(st, { camera: [0, 1.5, 13], target: [0, 0.9, 0], minDistance: 6, maxDistance: 30, autoRotateSpeed: 0.4, fitWidth: 3.6 });
   const fz = createFizz(v);
   const S = fz.state;
   fz.addVinegar(50);

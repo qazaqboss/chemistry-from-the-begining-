@@ -48,7 +48,7 @@ export function createFizz(viewer) {
     soda.forEach((m) => (m.visible = st.soda0 > 0 && m.userData.k < frac * Math.min(1, st.soda0 / 0.12)));
     const L = st.co2 * VM; // литров CO₂ (шарик, без учёта растворения)
     const r = Math.cbrt((3 * Math.max(L, 0.002)) / (4 * Math.PI)); // дм
-    const s = 0.35 + r * 2.4;
+    const s = 0.3 + r * 1.3;
     skin.scale.set(s, s * 1.12, s);
     balloon.position.y = 2.6 + s * 1.05;
   };
@@ -142,7 +142,7 @@ export function createCaramel(viewer) {
       const steam = Math.max(0, Math.min(1, (T - 165) / 30));
       const smoke = Math.max(0, Math.min(1, (T - 200) / 15));
       p.s.material.color.setHex(0xffffff).lerp(new THREE.Color(0x4a4038), smoke);
-      p.s.material.opacity = (0.18 * steam + 0.3 * smoke) * Math.sin(Math.PI * u);
+      p.s.material.opacity = (0.1 * steam + 0.3 * smoke) * Math.sin(Math.PI * u);
     }
   });
   return { set(v) { T = v; apply(); }, color: colorAt };

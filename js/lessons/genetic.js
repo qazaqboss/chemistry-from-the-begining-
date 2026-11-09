@@ -35,8 +35,8 @@ export async function render(el) {
 
   el.appendChild(h(`<section id="series"><h2>Два главных ряда</h2>
     <div class="grid-2">
-      <div class="card pad"><h3 class="mt0">Ряд металла</h3><p class="formula">металл → основный оксид → основание → соль</p><p class="small muted mt0">Ca → CaO → Ca(OH)₂ → CaCO₃. Для неактивных металлов (Cu, Fe) основание получают не из оксида, а из соли действием щёлочи: CuO → CuCl₂ → Cu(OH)₂.</p></div>
-      <div class="card pad"><h3 class="mt0">Ряд неметалла</h3><p class="formula">неметалл → кислотный оксид → кислота → соль</p><p class="small muted mt0">S → SO₂ → SO₃ → H₂SO₄ → Na₂SO₄; C → CO₂ → H₂CO₃ → CaCO₃; P → P₂O₅ → H₃PO₄ → Ca₃(PO₄)₂.</p></div>
+      <div class="card pad"><h3 class="mt0">Ряд металла</h3><p class="formula" style="white-space:normal">металл → основный оксид → основание → соль</p><p class="small muted mt0">Ca → CaO → Ca(OH)₂ → CaCO₃. Для неактивных металлов (Cu, Fe) основание получают не из оксида, а из соли действием щёлочи: CuO → CuCl₂ → Cu(OH)₂.</p></div>
+      <div class="card pad"><h3 class="mt0">Ряд неметалла</h3><p class="formula" style="white-space:normal">неметалл → кислотный оксид → кислота → соль</p><p class="small muted mt0">S → SO₂ → SO₃ → H₂SO₄ → Na₂SO₄; C → CO₂ → H₂CO₃ → CaCO₃; P → P₂O₅ → H₃PO₄ → Ca₃(PO₄)₂.</p></div>
     </div>
     <div class="callout"><b>Главное правило:</b> вещества разных рядов реагируют между собой — основный оксид с кислотным, основание с кислотой, — и в точке встречи всегда получается <b>соль</b>. Ряды амфотерных металлов (Zn, Al) «умеют» вести себя и как ряд металла, и как ряд неметалла.</div>
   </section>`));
@@ -118,7 +118,7 @@ export async function render(el) {
   el.appendChild(tr);
   PUZ.forEach((p) => {
     const card = h(`<div class="card pad" style="margin-bottom:12px">
-      <div class="formula" style="font-size:1.15rem;font-weight:800;margin-bottom:10px">${p.chain.map((c) => (c === "X" ? `<span style="color:var(--accent)">X</span>` : c)).join(" → ")}</div>
+      <div class="formula" style="white-space:normal;font-size:1.15rem;font-weight:800;margin-bottom:10px">${p.chain.map((c) => (c === "X" ? `<span style="color:var(--accent)">X</span>` : c)).join(" → ")}</div>
       <div class="row">${p.opts.map((o, i) => `<button class="btn small" type="button" data-o="${i}">${o}</button>`).join("")}</div>
       <p class="small" data-fb style="margin:10px 0 0" hidden></p></div>`);
     card.querySelectorAll("[data-o]").forEach((b) => (b.onclick = () => {
